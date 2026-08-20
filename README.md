@@ -24,8 +24,8 @@ Hi — I'm Gautam Vaishnav. I design and ship high-scale web systems with a MERN
 
 ### Savero Studio — [Private / Proprietary]
 Live: https://savero-next.vercel.app  
-Tech: MERN • TypeScript • Redis • Docker  
-Badges: ![MERN](https://img.shields.io/badge/MERN-Stack-0dbbff?style=flat-square&labelColor=0b0f14)&nbsp;![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&labelColor=0b0f14)&nbsp;![Redis](https://img.shields.io/badge/Redis-DC382D?style=flat-square&labelColor=0b0f14)&nbsp;![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&labelColor=0b0f14)
+Tech: MENN • TypeScript • Redis • Docker  
+Badges: ![MENN](https://img.shields.io/badge/MERN-Stack-0dbbff?style=flat-square&labelColor=0b0f14)&nbsp;![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&labelColor=0b0f14)&nbsp;![Redis](https://img.shields.io/badge/Redis-DC382D?style=flat-square&labelColor=0b0f14)&nbsp;![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&labelColor=0b0f14)
 
 One-liner
 - A high-scale e-commerce platform optimized for zero-inventory same‑day dispatch and resilient, multi‑tier cart management.
