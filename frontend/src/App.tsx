@@ -1,25 +1,11 @@
-import { Provider } from 'react-redux';
-import { store, useAppSelector } from './store';
-import { AuthPortal } from './components/AuthPortal';
-import CodeCity3DWorldPage from './app/world/page';
+import { CityScene } from "./three/CityScene";
+import { HUD } from "./ui/HUD";
 
-function CodeCityAppContent() {
-  const isAuthenticated = useAppSelector(state => state.auth.isAuthenticated);
-
-  // If user is NOT logged in, show Auth Gate (Login/Signup with GitHub, Google, Email+OTP)
-  if (!isAuthenticated) {
-    return <AuthPortal />;
-  }
-
-  return <CodeCity3DWorldPage />;
-}
-
-export function App() {
+export default function App() {
   return (
-    <Provider store={store}>
-      <CodeCityAppContent />
-    </Provider>
+    <div className="relative w-screen h-screen bg-[#070b18] overflow-hidden">
+      <CityScene />
+      <HUD />
+    </div>
   );
 }
-
-export default App;
