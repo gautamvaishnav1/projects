@@ -22,8 +22,7 @@ import {
 import { useAppDispatch, useAppSelector } from '../../store';
 import TelemetryCard from '../../components/TelemetryCard';
 import FilterBar from '../../components/FilterBar';
-import District from '../../components/District';
-import { UndergroundPipelines } from '../../components/UndergroundPipelines';
+import { WorldScene } from '../../components/three/WorldScene';
 
 import {
   setCurrentRepo,
@@ -39,8 +38,7 @@ import {
   setSearchQuery,
 } from '../../store/citySlice';
 import { logout } from '../../store/authSlice';
-import { ISLAND_SECTORS, PRESET_REPOSITORIES } from '../../data/mockRepoData';
-import type { CityNode, NodeType } from '../../types/codecity';
+import { PRESET_REPOSITORIES } from '../../data/mockRepoData';
 
 export function CodeCity3DWorldPage() {
   const dispatch = useAppDispatch();
@@ -78,25 +76,9 @@ export function CodeCity3DWorldPage() {
 
   const handleMouseUp = () => setIsDragging(false);
 
-  // Zoom to District on click with Framer Motion scale effect
-  const handleDistrictClick = (sectorId: string) => {
-    const sector = ISLAND_SECTORS[sectorId];
-    if (sector) {
-      dispatch(setSelectedSectorFilter(sectorId as NodeType));
-      dispatch(setZoom(1.3));
-    }
-  };
 
-  const transformStyle: React.CSSProperties = transform.isTopDown
-    ? {
-        transform: `translate(${transform.panX}px, ${transform.panY}px) scale(${transform.zoom})`,
-        transition: isDragging ? 'none' : 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-      }
-    : {
-        transform: `translate(${transform.panX}px, ${transform.panY}px) scale(${transform.zoom}) rotateX(${transform.rotateX}deg) rotateZ(${transform.rotateZ}deg)`,
-        transformStyle: 'preserve-3d',
-        transition: isDragging ? 'none' : 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-      };
+
+  // Map transform not used directly in CSS anymore, handled by WorldScene and OrbitControls
 
   return (
     <div className="flex flex-col w-screen h-screen bg-[#090D16] text-slate-100 overflow-hidden font-sans select-none">
@@ -325,179 +307,7 @@ export function CodeCity3DWorldPage() {
 
           {/* Interactive 3D World Canvas Viewport */}
           <div className="w-full h-full flex items-center justify-center pointer-events-auto">
-            <div style={transformStyle} className="isometric-container origin-center">
-              <svg width="1080" height="840" viewBox="0 0 1080 840" className="overflow-visible">
-                {/* SVG Definitions */}
-                <defs>
-                  <filter id="glowCyan" x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur stdDeviation="6" result="blur" />
-                    <feMerge>
-                      <feMergeNode in="blur" />
-                      <feMergeNode in="SourceGraphic" />
-                    </feMerge>
-                  </filter>
-                  <filter id="glowPurple" x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur stdDeviation="6" result="blur" />
-                    <feMerge>
-                      <feMergeNode in="blur" />
-                      <feMergeNode in="SourceGraphic" />
-                    </feMerge>
-                  </filter>
-                </defs>
-
-                {/* Subterranean Ocean Foundation */}
-                <rect
-                  x="40"
-                  y="40"
-                  width="1000"
-                  height="760"
-                  rx="36"
-                  fill="rgba(10, 14, 26, 0.95)"
-                  stroke="rgba(0, 240, 255, 0.25)"
-                  strokeWidth="2.5"
-                  className="cyber-grid-dots"
-                />
-
-                {/* 8 DISTRICT ZONES WITH NEON BORDERS */}
-                {Object.entries(ISLAND_SECTORS).map(([key, sector]) => (
-                  <District
-                    key={key}
-                    sector={sector}
-                    nodes={currentRepo.nodes}
-                    selectedNode={selectedNode}
-                    onSelectNode={(node: CityNode) => dispatch(setSelectedNode(node))}
-                    onDistrictClick={handleDistrictClick}
-                  />
-                ))}
-
-                {/* CENTRAL HUB: API GATEWAY CIRCLE MONUMENT */}
-                <g transform="translate(480, 380)" className="cursor-pointer">
-                  <circle
-                    cx="0"
-                    cy="0"
-                    r="48"
-                    fill="rgba(15, 23, 42, 0.95)"
-                    stroke="#A855F7"
-                    strokeWidth="2.5"
-                  />
-                  <circle
-                    cx="0"
-                    cy="0"
-                    r="36"
-                    fill="rgba(168, 85, 247, 0.25)"
-                    stroke="#00F0FF"
-                    strokeWidth="1.5"
-                    strokeDasharray="6 4"
-                  />
-                  <circle cx="0" cy="0" r="14" fill="#A855F7" className="animate-ping opacity-60" />
-                  <circle cx="0" cy="0" r="12" fill="#00F0FF" stroke="#ffffff" strokeWidth="1.5" />
-
-                  <rect
-                    x="-55"
-                    y="-11"
-                    width="110"
-                    height="22"
-                    rx="5"
-                    fill="#0A0E1A"
-                    stroke="#A855F7"
-                    strokeWidth="1.5"
-                  />
-                  <text
-                    x="0"
-                    y="4"
-                    textAnchor="middle"
-                    fill="#00F0FF"
-                    fontSize="9"
-                    fontWeight="bold"
-                    fontFamily="monospace"
-                  >
-                    API GATEWAY HUB
-                  </text>
-                </g>
-
-                {/* 6 DASHED HIGHWAY ROADS CONNECTING ALL DISTRICTS */}
-                {/* Road 1: Frontend District Road */}
-                <path d="M 480,240 L 480,380" fill="none" stroke="#1E293B" strokeWidth="14" strokeLinecap="round" />
-                <path d="M 480,240 L 480,380" fill="none" stroke="#00F0FF" strokeWidth="2" strokeDasharray="6 6" />
-
-                {/* Road 2: Backend District Road */}
-                <path d="M 280,380 L 480,380" fill="none" stroke="#1E293B" strokeWidth="14" strokeLinecap="round" />
-                <path d="M 280,380 L 480,380" fill="none" stroke="#A855F7" strokeWidth="2" strokeDasharray="6 6" />
-
-                {/* Road 3: Database Citadel Road */}
-                <path d="M 680,380 L 480,380" fill="none" stroke="#1E293B" strokeWidth="14" strokeLinecap="round" />
-                <path d="M 680,380 L 480,380" fill="none" stroke="#00FF88" strokeWidth="2" strokeDasharray="6 6" />
-
-                {/* Road 4: Auth Fort Road */}
-                <path d="M 680,240 Q 580,300 480,380" fill="none" stroke="#1E293B" strokeWidth="14" strokeLinecap="round" />
-                <path d="M 680,240 Q 580,300 480,380" fill="none" stroke="#FFB800" strokeWidth="2" strokeDasharray="6 6" />
-
-                {/* Road 5: Infra Core Road */}
-                <path d="M 480,520 L 480,380" fill="none" stroke="#1E293B" strokeWidth="14" strokeLinecap="round" />
-                <path d="M 480,520 L 480,380" fill="none" stroke="#3B82F6" strokeWidth="2" strokeDasharray="6 6" />
-
-                {/* Road 6: File System Depot Road */}
-                <path d="M 680,520 Q 580,450 480,380" fill="none" stroke="#1E293B" strokeWidth="14" strokeLinecap="round" />
-                <path d="M 680,520 Q 580,450 480,380" fill="none" stroke="#FFB800" strokeWidth="2" strokeDasharray="6 6" />
-
-                {/* FLOATING LABELS ON ROADS */}
-                <g transform="translate(560, 300)">
-                  <rect x="-42" y="-9" width="84" height="18" rx="4" fill="#0A0E1A" stroke="#FFB800" strokeWidth="1" />
-                  <text x="0" y="3" textAnchor="middle" fill="#FFB800" fontSize="8" fontWeight="bold" fontFamily="monospace">
-                    Verify JWT Fort
-                  </text>
-                </g>
-                <g transform="translate(580, 370)">
-                  <rect x="-44" y="-9" width="88" height="18" rx="4" fill="#0A0E1A" stroke="#00FF88" strokeWidth="1" />
-                  <text x="0" y="3" textAnchor="middle" fill="#00FF88" fontSize="8" fontWeight="bold" fontFamily="monospace">
-                    Query User Silo
-                  </text>
-                </g>
-                <g transform="translate(380, 370)">
-                  <rect x="-46" y="-9" width="92" height="18" rx="4" fill="#0A0E1A" stroke="#A855F7" strokeWidth="1" />
-                  <text x="0" y="3" textAnchor="middle" fill="#A855F7" fontSize="8" fontWeight="bold" fontFamily="monospace">
-                    Invalidate Cache
-                  </text>
-                </g>
-                <g transform="translate(470, 460)">
-                  <rect x="-46" y="-9" width="92" height="18" rx="4" fill="#0A0E1A" stroke="#3B82F6" strokeWidth="1" />
-                  <text x="0" y="3" textAnchor="middle" fill="#3B82F6" fontSize="8" fontWeight="bold" fontFamily="monospace">
-                    Docker Deploy
-                  </text>
-                </g>
-
-                {/* LIVE MOVING TRAFFIC ANIMATION */}
-                {transform.showTraffic &&
-                  currentRepo.edges.map((edge, index) => {
-                    const fromNode = currentRepo.nodes.find((n) => n.id === edge.from);
-                    const toNode = currentRepo.nodes.find((n) => n.id === edge.to);
-                    if (!fromNode || !toNode) return null;
-
-                    const x1 = fromNode.gridPos.x;
-                    const y1 = fromNode.gridPos.y - 20;
-                    const x2 = toNode.gridPos.x;
-                    const y2 = toNode.gridPos.y - 20;
-                    const cx = (x1 + x2) / 2;
-                    const cy = (y1 + y2) / 2 - 35;
-                    const pathStr = `M ${x1},${y1} Q ${cx},${cy} ${x2},${y2}`;
-
-                    return (
-                      <g key={`edge-${index}`}>
-                        <circle r="4" fill="#00F0FF" filter="url(#glowCyan)">
-                          <animateMotion
-                            path={pathStr}
-                            dur={`${2.2 + index * 0.4}s`}
-                            repeatCount="indefinite"
-                          />
-                        </circle>
-                      </g>
-                    );
-                  })}
-
-                {/* SUBTERRANEAN DATA PIPELINES & CACHE LAYER */}
-                <UndergroundPipelines visible={transform.showPipelines} />
-              </svg>
-            </div>
+            <WorldScene />
           </div>
         </main>
 
