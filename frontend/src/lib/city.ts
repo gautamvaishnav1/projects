@@ -1,5 +1,9 @@
+import { useMemo } from "react";
 import { buildLayout } from "./layout";
-import { SAMPLE_CITY } from "../data/sampleCity";
+import { useCity } from "../store/useCity";
 
-export const LAYOUT = buildLayout(SAMPLE_CITY);
-export const CITY_EDGES = SAMPLE_CITY.edges;
+/** Layout derived reactively from the active CityJSON in the store. */
+export function useCityLayout() {
+  const city = useCity((s) => s.city);
+  return useMemo(() => buildLayout(city), [city]);
+}

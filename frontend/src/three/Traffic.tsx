@@ -101,6 +101,7 @@ function Person({ a, b, seed }: any) {
 export function Traffic({ L }: { L: CityLayout }) {
   const traffic = useCity((s) => s.traffic);
   const failing = useCity((s) => s.failing);
+  const failingId = useCity((s) => s.failingId);
   const latency = useCity((s) => s.latency);
   const curves = useMemo(
     () => ({
@@ -110,7 +111,7 @@ export function Traffic({ L }: { L: CityLayout }) {
     }),
     [L],
   );
-  const payCtrl = L.byId.get("be-payctrl")!;
+  const failB = failingId ? L.byId.get(failingId) : undefined;
 
   return (
     <group>
@@ -126,23 +127,23 @@ export function Traffic({ L }: { L: CityLayout }) {
       {L.people.map((p, i) => (
         <Person key={i} a={p.a} b={p.b} seed={i * 0.7} />
       ))}
-      {failing && (
-        <group>
-          <group position={[payCtrl.pos[0], 0, payCtrl.pos[2]]}>
-            <mesh position={[0, 6.5, 0]}>
-              <coneGeometry args={[0.8, 1.6, 4]} />
-              <meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={1} />
-            </mesh>
-            <Html center position={[0, 8.5, 0]}>
-              <div className="px-2 py-1 rounded bg-red-600 text-white text-xs font-bold whitespace-nowrap">⚠ 500 — paymentService</div>
-            </Html>
-          </group>
-          {/* roadblock on the lane in front of the Controllers district gate */}
-          <mesh position={[43, 0.55, -20]}>
-            <boxGeometry args={[6.5, 1, 0.5]} />
-            <meshStandardMaterial color="#f97316" emissive="#f97316" emissiveIntensity={0.7} />
+      {failing && failB && (
+        <group position={[failB.pos[0], 0, failB.pos[2]]}>
+          <mesh position={[0, 6.5, 0]}>
+            <coneGeometry args={[0.8, 1.6, 4]} />
+            <meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={1} />
           </mesh>
+          <Html center position={[0, 8.5, 0]}>
+            <div className="px-2 py-1 rounded bg-red-600 text-white text-xs font-bold whitespace-nowrap">⚠ 500 — {failB.name}</div>
+          </Html>
         </group>
+      )}
+      {/* roadblock on the lane in front of the Controllers district gate */}
+      {failing && (
+        <mesh position={[43, 0.55, -20]}>
+          <boxGeometry args={[6.5, 1, 0.5]} />
+          <meshStandardMaterial color="#f97316" emissive="#f97316" emissiveIntensity={0.7} />
+        </mesh>
       )}
     </group>
   );

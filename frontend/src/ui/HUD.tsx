@@ -1,104 +1,113 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Search, Play, Bug, Radio, Keyboard } from "lucide-react";
-import { LAYOUT } from "../lib/city";
+import { Search, Play, Bug, Radio, Keyboard, GitBranch, LogOut } from "lucide-react";
+import { useAuth } from "../lib/auth";
+import type { CityJSON } from "../types";
+import { useCityLayout } from "../lib/city";
 import { KIND_COLOR } from "../lib/layout";
 import { useCity } from "../store/useCity";
-import { SAMPLE_CITY } from "../data/sampleCity";
 
-const explain = (
-  b: (typeof LAYOUT.buildings)[number],
-  fn: NonNullable<(typeof LAYOUT.buildings)[number]["functions"]>[number],
-) =>
-  `${fn.name}(${fn.args}) — ${fn.purpose}. It receives (${fn.args}) and returns ${fn.returns}. ` +
-  `In the city, it lives inside the "${b.name}" building (${b.districtName} district). ` +
-  `Requests reaching it arrive from ${
-    SAMPLE_CITY.edges
-      .filter((e) => e.to === b.id)
-      .map((e) => LAYOUT.byId.get(e.from)?.name)
-      .join(", ") || "the client"
-  } and continue to ${
-    SAMPLE_CITY.edges
-      .filter((e) => e.from === b.id)
-      .map((e) => LAYOUT.byId.get(e.to)?.name)
-      .join(", ") || "nothing"
-  }.`;
+const ANALYZER_URL = "http://localhost:8787/api/analyze";
 
-function DistrictNav() {
-  const setFocus = useCity((st) => st.setFocus);
+function UserChip() {
+  const user = useAuth((s) => s.user);
+  const signOut = useAuth((s) => s.signOut);
+  if (!user) return null;
   return (
-    <div className="absolute top-14 left-1/2 -translate-x-1/2 flex gap-1.5 pointer-events-auto max-w-[70vw] overflow-x-auto">
-      {LAYOUT.districts.map((d) => (
-        <button
-          key={d.id}
-          onClick={() => setFocus(d.center[0], d.center[1])}
-          className="px-2.5 py-1 rounded-lg bg-slate-900/80 backdrop-blur border border-slate-700 text-[11px] text-slate-300 whitespace-nowrap hover:border-cyan-500/60 hover:text-cyan-300"
-        >
-          {d.name}
-        </button>
-      ))}
+    <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-slate-900/80 px-2.5 py-2">
+      <span className="grid h-5 w-5 place-items-center rounded-full bg-gradient-to-br from-cyan-400 to-fuchsia-500 text-[10px] font-bold text-slate-950">
+        {user.name.slice(0, 1).toUpperCase()}
+      </span>
+      <span className="hidden max-w-[90px] truncate font-mono text-[11px] text-slate-300 lg:block">{user.name}</span>
+      <button onClick={signOut} title="Sign out" className="text-slate-500 transition-colors hover:text-rose-300">
+        <LogOut size={13} />
+      </button>
     </div>
   );
 }
 
-function Legend() {
-  const [open, setOpen] = useState(false);
-  const counts = useMemo(() => {
-    const m = new Map<string, number>();
-    LAYOUT.buildings.forEach((b) => m.set(b.kind, (m.get(b.kind) ?? 0) + 1));
-    return m;
+function RepoLoader() {
+  const setCity = useCity((s) => s.setCity);
+  const notify = useCity((s) => s.notify);
+  const [q, setQ] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function load(urlOverride?: string) {
+    const target = (urlOverride ?? q).trim();
+    if (!target || busy) return;
+    setBusy(true);
+    try {
+      const res = await fetch(ANALYZER_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ repoUrl: target }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || `HTTP ${res.status}`);
+      const city = json as CityJSON;
+      const files = city.districts.reduce((a, d) => a + d.buildings.length, 0);
+      setCity(city);
+      notify(`🏙 Loaded ${city.project.name} — ${files} buildings`, undefined, "success");
+    } catch (e) {
+      notify(`⚠ Analyzer failed: ${(e as Error).message}. Is the analyzer running on :8787?`, undefined, "error");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // auto-load a repo requested from the landing page hero form
+  useEffect(() => {
+    const pending = localStorage.getItem("cc-pending-repo");
+    if (!pending) return;
+    localStorage.removeItem("cc-pending-repo");
+    const id = window.setTimeout(() => void load(pending), 0);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
   return (
-    <div className="absolute bottom-4 left-3 pointer-events-auto">
-      {open ? (
-        <div className="w-56 rounded-xl bg-slate-900/85 backdrop-blur border border-slate-700 p-3 text-xs">
-          <button onClick={() => setOpen(false)} className="float-right text-slate-500 hover:text-white">
-            ✕
-          </button>
-          <div className="font-bold text-slate-300 mb-2">BUILDING LEGEND</div>
-          <div className="grid grid-cols-2 gap-y-1">
-            {(Object.keys(KIND_COLOR) as (keyof typeof KIND_COLOR)[]).map((k) => (
-              <div key={k} className="flex items-center gap-2">
-                <span className="inline-block w-2.5 h-2.5 rounded-sm" style={{ background: KIND_COLOR[k] }} />
-                <span className="text-slate-300">{k}</span>
-                <span className="text-slate-500">×{counts.get(k) ?? 0}</span>
-              </div>
-            ))}
-          </div>
-          <div className="mt-2 pt-2 border-t border-slate-700 text-[10px] leading-relaxed text-slate-400">
-            <Keyboard size={10} className="inline mr-1" />
-            <b>/</b> search · <b>Enter</b> run login · <b>T</b> traffic · <b>U</b> pipes · <b>K</b> links · <b>F</b> follow ·{" "}
-            <b>Esc</b> close
-          </div>
-        </div>
-      ) : (
-        <button
-          onClick={() => setOpen(true)}
-          className="px-3 py-2 rounded-xl bg-slate-900/80 border border-slate-700 text-xs text-slate-300 hover:border-cyan-500/60"
-        >
-          ☰ Legend &amp; keys
-        </button>
-      )}
+    <div className="relative flex items-center">
+      <GitBranch size={14} className="absolute left-3 top-3 text-slate-400" />
+      <input
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && load()}
+        placeholder="github.com/owner/repo"
+        className="w-56 pl-8 pr-2 py-2 rounded-xl bg-slate-900/80 border border-slate-700 text-sm outline-none focus:border-emerald-500"
+      />
+      <button
+        onClick={() => load()}
+        disabled={busy}
+        className={`ml-1 px-3 py-2 rounded-xl border text-xs font-bold ${
+          busy ? "bg-slate-800 border-slate-700 text-slate-500" : "bg-emerald-500/20 border-emerald-500 text-emerald-300 hover:bg-emerald-500/30"
+        }`}
+      >
+        {busy ? "Building…" : "Build City"}
+      </button>
     </div>
   );
 }
 
 export function HUD() {
+  const layout = useCityLayout();
+  const cityEdges = useCity((s) => s.city.edges);
+  const projectName = useCity((s) => s.city.project.name);
   const s = useCity();
   const [q, setQ] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
-  const sel = LAYOUT.byId.get(s.selectedId ?? "");
+  const sel = layout.byId.get(s.selectedId ?? "");
   const selFn = sel?.functions.find((f) => f.name === s.selectedFn);
   const results = useMemo(
     () =>
       q
-        ? LAYOUT.buildings.filter((b) => (b.name + b.districtName).toLowerCase().includes(q.toLowerCase())).slice(0, 6)
+        ? layout.buildings.filter((b) => (b.name + b.districtName).toLowerCase().includes(q.toLowerCase())).slice(0, 6)
         : [],
-    [q],
+    [q, layout],
   );
-  const lines = LAYOUT.buildings.reduce((a, b) => a + b.loc, 0);
+  const lines = layout.buildings.reduce((a, b) => a + b.loc, 0);
 
   const pick = (id: string) => {
-    const b = LAYOUT.byId.get(id)!;
+    const b = layout.byId.get(id);
+    if (!b) return;
     s.select(id);
     s.setFocus(b.pos[0], b.pos[2]);
     setQ("");
@@ -148,17 +157,48 @@ export function HUD() {
       }
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    // bridges for the command palette / landing page
+    const onRunLogin = () => document.getElementById("cc-run-btn")?.click();
+    const onFailPayment = () => document.getElementById("cc-fail-btn")?.click();
+    window.addEventListener("cc-run-login", onRunLogin);
+    window.addEventListener("cc-fail-payment", onFailPayment);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("cc-run-login", onRunLogin);
+      window.removeEventListener("cc-fail-payment", onFailPayment);
+    };
   }, []);
+
+  const explain = (b: NonNullable<typeof sel>, fn: NonNullable<typeof selFn>) =>
+    `${fn.name}(${fn.args}) — ${fn.purpose}. It receives (${fn.args}) and returns ${fn.returns}. ` +
+    `In the city, it lives inside the "${b.name}" building (${b.districtName} district). ` +
+    `Requests reaching it arrive from ${
+      cityEdges
+        .filter((e) => e.to === b.id)
+        .map((e) => layout.byId.get(e.from)?.name)
+        .join(", ") || "the client"
+    } and continue to ${
+      cityEdges
+        .filter((e) => e.from === b.id)
+        .map((e) => layout.byId.get(e.to)?.name)
+        .join(", ") || "nothing"
+    }.`;
 
   return (
     <div className="absolute inset-0 pointer-events-none text-slate-100 font-mono">
       {/* top bar */}
       <div className="absolute top-0 left-0 right-0 flex items-center gap-3 p-3 pointer-events-auto">
-        <div className="px-3 py-2 rounded-xl bg-slate-900/80 backdrop-blur border border-cyan-500/40 font-bold text-cyan-400">
+        <button
+          onClick={() => {
+            location.hash = "";
+          }}
+          title="Back to landing page"
+          className="cursor-pointer px-3 py-2 rounded-xl bg-slate-900/80 backdrop-blur border border-cyan-500/40 font-bold text-cyan-400 transition-colors hover:border-cyan-400"
+        >
           🏙 CODECITY AI
-        </div>
-        <div className="px-3 py-2 rounded-xl bg-slate-900/80 border border-slate-700 text-xs">{SAMPLE_CITY.project.name}</div>
+        </button>
+        <div className="px-3 py-2 rounded-xl bg-slate-900/80 border border-slate-700 text-xs">{projectName}</div>
+        <RepoLoader />
         <div className="relative flex-1 max-w-md">
           <Search size={14} className="absolute left-3 top-3 text-slate-400" />
           <input
@@ -179,6 +219,7 @@ export function HUD() {
             </div>
           )}
         </div>
+        <UserChip />
         <div className="flex gap-2">
           <button
             onClick={() => s.patch({ traffic: !s.traffic })}
@@ -212,10 +253,10 @@ export function HUD() {
       <div className="absolute left-3 top-16 grid gap-2 pointer-events-auto">
         {(
           [
-            ["FILES", LAYOUT.buildings.length],
+            ["FILES", layout.buildings.length],
             ["LINES", lines],
             ["SECURITY", "87"],
-            ["BOTTLENECKS", LAYOUT.buildings.filter((b) => b.health !== "ok").length],
+            ["BOTTLENECKS", layout.buildings.filter((b) => b.health !== "ok").length],
           ] as [string, string | number][]
         ).map(([k, v]) => (
           <div key={k} className="px-3 py-2 rounded-xl bg-slate-900/80 border border-slate-700 text-xs">
@@ -232,7 +273,7 @@ export function HUD() {
             s.patch({ traffic: true, following: true });
             s.notify("🚗 POST /api/auth/login dispatched");
           }}
-          className="px-5 py-3 rounded-xl bg-cyan-500 text-slate-900 font-bold text-sm shadow-lg shadow-cyan-500/40"
+          id="cc-run-btn" className="px-5 py-3 rounded-xl bg-gradient-to-r from-[#f8fafc] via-[#cbd5e1] to-[#94a3b8] text-[#0b1222] font-bold text-sm shadow-[0_0_24px_rgba(226,232,240,.5)]"
         >
           <Play size={14} className="inline mr-1" />
           RUN LOGIN
@@ -251,7 +292,7 @@ export function HUD() {
             s.patch({ failing: !s.failing });
             if (!s.failing) s.notify("❌ Payment API failed — 500", "be-payctrl");
           }}
-          className="px-3 py-3 rounded-xl bg-red-600/90 border border-red-500 text-xs font-bold"
+          id="cc-fail-btn" className="px-3 py-3 rounded-xl bg-red-600/90 border border-red-500 text-xs font-bold"
         >
           <Bug size={12} className="inline mr-1" />
           FAIL PAYMENT
@@ -310,8 +351,50 @@ export function HUD() {
         </div>
       )}
 
-      <DistrictNav />
-      <Legend />
+      <LegendPanel />
+    </div>
+  );
+}
+
+function LegendPanel() {
+  const layout = useCityLayout();
+  const [open, setOpen] = useState(false);
+  const counts = useMemo(() => {
+    const m = new Map<string, number>();
+    layout.buildings.forEach((b) => m.set(b.kind, (m.get(b.kind) ?? 0) + 1));
+    return m;
+  }, [layout]);
+  return (
+    <div className="absolute bottom-4 left-3 pointer-events-auto">
+      {open ? (
+        <div className="w-56 rounded-xl bg-slate-900/85 backdrop-blur border border-slate-700 p-3 text-xs">
+          <button onClick={() => setOpen(false)} className="float-right text-slate-500 hover:text-white">
+            ✕
+          </button>
+          <div className="font-bold text-slate-300 mb-2">BUILDING LEGEND</div>
+          <div className="grid grid-cols-2 gap-y-1">
+            {(Object.keys(KIND_COLOR) as (keyof typeof KIND_COLOR)[]).map((k) => (
+              <div key={k} className="flex items-center gap-2">
+                <span className="inline-block w-2.5 h-2.5 rounded-sm" style={{ background: KIND_COLOR[k] }} />
+                <span className="text-slate-300">{k}</span>
+                <span className="text-slate-500">×{counts.get(k) ?? 0}</span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-2 pt-2 border-t border-slate-700 text-[10px] leading-relaxed text-slate-400">
+            <Keyboard size={10} className="inline mr-1" />
+            <b>/</b> search · <b>Enter</b> run login · <b>T</b> traffic · <b>U</b> pipes · <b>K</b> links · <b>F</b> follow ·{" "}
+            <b>Esc</b> close
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={() => setOpen(true)}
+          className="px-3 py-2 rounded-xl bg-slate-900/80 border border-slate-700 text-xs text-slate-300 hover:border-cyan-500/60"
+        >
+          ☰ Legend &amp; keys
+        </button>
+      )}
     </div>
   );
 }

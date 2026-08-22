@@ -1,7 +1,7 @@
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Stars, Grid } from "@react-three/drei";
 import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
-import { LAYOUT } from "../lib/city";
+import { useCityLayout } from "../lib/city";
 import { useCity } from "../store/useCity";
 import { Building, District } from "./Buildings";
 import { Ground, River, Roads, Underground, Decor } from "./Infrastructure";
@@ -10,6 +10,8 @@ import { Connections } from "./Connections";
 import { CameraRig } from "./CameraRig";
 
 export function CityScene() {
+  const L = useCityLayout();
+  const cityEdges = useCity((s) => s.city.edges);
   return (
     <Canvas
       shadows
@@ -55,17 +57,17 @@ export function CityScene() {
 
       <Ground />
       <River />
-      <Roads L={LAYOUT} />
-      <Underground L={LAYOUT} />
-      <Decor L={LAYOUT} />
-      {LAYOUT.districts.map((d) => (
+      <Roads L={L} />
+      <Underground L={L} />
+      <Decor L={L} />
+      {L.districts.map((d) => (
         <District key={d.id} d={d} />
       ))}
-      {LAYOUT.buildings.map((b) => (
+      {L.buildings.map((b) => (
         <Building key={b.id} b={b} />
       ))}
-      <Connections />
-      <Traffic L={LAYOUT} />
+      <Connections layout={L} edges={cityEdges} />
+      <Traffic L={L} />
       <CameraRig />
       <OrbitControls makeDefault enableDamping maxPolarAngle={Math.PI / 2.15} minDistance={8} maxDistance={180} />
 
