@@ -86,6 +86,10 @@ function Bystander({ pos, seed }: { pos: [number, number]; mid?: boolean; seed: 
     const clip = names.find((n) => /idle|wave/i.test(n)) ?? names[0];
     if (clip && actions[clip]) actions[clip].play();
   }, [actions, names]);
+  // clone geometry per bystander so the pivot translate doesn't mutate shared GLB data
+  useMemo(() => {
+    cloned.traverse((o: any) => { if (o.isMesh && o.geometry) o.geometry = o.geometry.clone(); });
+  }, [cloned]);
   return (
     <group ref={ref} position={[pos[0], 0.02, pos[1]]} rotation-y={seed * Math.PI * 2} scale={1.25}>
       <primitive object={cloned} />

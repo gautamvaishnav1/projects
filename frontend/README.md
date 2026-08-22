@@ -10,7 +10,7 @@ through the whole stack. Built for hackathon demos.
 
 ```bash
 npm install
-npm run dev      # http://localhost:5173
+npm run dev      # http://localhost:5199 (port pinned in vite.config.ts)
 ```
 
 ## 30-second demo script

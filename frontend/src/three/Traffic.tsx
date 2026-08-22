@@ -40,16 +40,18 @@ function GltfCar({ url, color }: { url: string; color?: string }) {
   return <primitive object={cloned} />;
 }
 
-function Headlights({ night }: { night: number }) {
+function Headlights() {
+  const mat = useRef<THREE.MeshStandardMaterial>(null!);
+  useFrame(() => { if (mat.current) mat.current.emissiveIntensity = ENV.night * 2; });
   return (
     <group>
       <mesh position={[-0.28, 0.45, 1.05]} rotation-x={-Math.PI / 2}>
         <circleGeometry args={[0.09, 10]} />
-        <meshStandardMaterial color="#fff7d6" emissive="#ffdf8a" emissiveIntensity={night * 2} />
+        <meshStandardMaterial ref={mat} color="#fff7d6" emissive="#ffdf8a" emissiveIntensity={0} />
       </mesh>
       <mesh position={[0.28, 0.45, 1.05]} rotation-x={-Math.PI / 2}>
         <circleGeometry args={[0.09, 10]} />
-        <meshStandardMaterial color="#fff7d6" emissive="#ffdf8a" emissiveIntensity={night * 2} />
+        <meshStandardMaterial color="#fff7d6" emissive="#ffdf8a" emissiveIntensity={0} />
       </mesh>
     </group>
   );
@@ -77,7 +79,7 @@ function Car({ curve, offset, latencyKey, hero, stuck, color }: any) {
   return (
     <group ref={ref}>
       <GltfCar url={url} color={typeof color === "string" && color.startsWith("#") ? color : undefined} />
-      <Headlights night={ENV.night} />
+      <Headlights />
       {/* emissive beacon so the car reads at night */}
       <mesh position={[0, 1.1, -0.6]}><sphereGeometry args={[0.07, 8, 8]} /><meshStandardMaterial color={LAT_COLOR[cur]} emissive={LAT_COLOR[cur]} emissiveIntensity={0.6 + ENV.night * 3} /></mesh>
     </group>
@@ -104,7 +106,7 @@ function Truck({ curve, offset }: { curve: THREE.CatmullRomCurve3; offset: numbe
         <boxGeometry args={[1.15, 0.9, 1.9]} />
         <meshStandardMaterial color="#10b981" emissive="#10b981" emissiveIntensity={0.25} roughness={0.6} />
       </mesh>
-      <Headlights night={ENV.night} />
+      <Headlights />
     </group>
   );
 }
