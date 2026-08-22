@@ -451,3 +451,100 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* ════════════════════════════════════════════════════════════════
+   LANDING — print-process animations (wipe, build, register)
+   ════════════════════════════════════════════════════════════════ */
+
+/* scroll reveal — content "printed" onto the sheet, never faded in softly */
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal.in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* hero headline — three ink passes, hard clip-wipe left→right */
+.headline-pass {
+  clip-path: inset(0 100% 0 0);
+  animation: ink-wipe 0.55s steps(8, end) forwards;
+  animation-delay: calc(var(--d, 0) * 0.18s + 0.1s);
+}
+@keyframes ink-wipe {
+  to { clip-path: inset(0 -2% 0 0); }
+}
+
+/* lattice bars rise like set type being locked into the chase */
+.lattice-bar {
+  transform-origin: bottom;
+  transform: scaleY(0);
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lattice-bar.up {
+  transform: scaleY(1);
+}
+
+/* departures rows slide in as the board is stamped */
+.dep-row {
+  opacity: 0;
+  transform: translateX(-10px);
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s ease;
+}
+.dep-row.in {
+  opacity: 1;
+  transform: translateX(0);
+}
+/* delayed train blink — the one moving thing on an otherwise flat board */
+@keyframes dep-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+.dep-late {
+  animation: dep-blink 1.6s steps(2, start) infinite;
+}
+
+/* mini-city buildings rise when scrolled into view; traffic loops always */
+.bld rect {
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transform-box: fill-box;
+}
+.city-live .bld rect {
+  animation: bld-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+@keyframes bld-rise {
+  to { transform: scaleY(1); }
+}
+.city-tag {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  fill: rgba(20, 20, 20, 0.55);
+}
+
+/* reduced motion: everything appears settled, no movement at all */
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .headline-pass,
+  .lattice-bar,
+  .dep-row,
+  .city-live .bld rect {
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
+  .dep-late,
+  .city-car {
+    animation: none !important;
+  }
+}
