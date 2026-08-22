@@ -1,0 +1,237 @@
+[
+  {
+    "name": "tower-api",
+    "file": "tower-api.glb",
+    "bytes": 95968
+  },
+  {
+    "name": "bridge-hero",
+    "file": "bridge-hero.glb",
+    "bytes": 304112
+  },
+  {
+    "name": "data-center-cube",
+    "file": "data-center-cube.glb",
+    "bytes": 85376
+  },
+  {
+    "name": "broadcast-mast",
+    "file": "broadcast-mast.glb",
+    "bytes": 121920
+  },
+  {
+    "name": "crane-construction",
+    "file": "crane-construction.glb",
+    "bytes": 199276
+  },
+  {
+    "name": "factory-service",
+    "file": "factory-service.glb",
+    "bytes": 143140
+  },
+  {
+    "name": "warehouse-db",
+    "file": "warehouse-db.glb",
+    "bytes": 91784
+  },
+  {
+    "name": "office-tower-a",
+    "file": "office-tower-a.glb",
+    "bytes": 44680
+  },
+  {
+    "name": "office-tower-b",
+    "file": "office-tower-b.glb",
+    "bytes": 84612
+  },
+  {
+    "name": "office-tower-c",
+    "file": "office-tower-c.glb",
+    "bytes": 111644
+  },
+  {
+    "name": "server-farm",
+    "file": "server-farm.glb",
+    "bytes": 119232
+  },
+  {
+    "name": "car-request-fast",
+    "file": "car-request-fast.glb",
+    "bytes": 56632
+  },
+  {
+    "name": "car-request-mid",
+    "file": "car-request-mid.glb",
+    "bytes": 56580
+  },
+  {
+    "name": "car-request-slow",
+    "file": "car-request-slow.glb",
+    "bytes": 56632
+  },
+  {
+    "name": "car-request-pending",
+    "file": "car-request-pending.glb",
+    "bytes": 56632
+  },
+  {
+    "name": "car-idle",
+    "file": "car-idle.glb",
+    "bytes": 52576
+  },
+  {
+    "name": "delivery-truck",
+    "file": "delivery-truck.glb",
+    "bytes": 72368
+  },
+  {
+    "name": "bus",
+    "file": "bus.glb",
+    "bytes": 71536
+  },
+  {
+    "name": "ambulance",
+    "file": "ambulance.glb",
+    "bytes": 52836
+  },
+  {
+    "name": "tow-truck",
+    "file": "tow-truck.glb",
+    "bytes": 61684
+  },
+  {
+    "name": "news-helicopter",
+    "file": "news-helicopter.glb",
+    "bytes": 66292
+  },
+  {
+    "name": "lamp-single",
+    "file": "lamp-single.glb",
+    "bytes": 20452
+  },
+  {
+    "name": "lamp-double",
+    "file": "lamp-double.glb",
+    "bytes": 31360
+  },
+  {
+    "name": "traffic-light",
+    "file": "traffic-light.glb",
+    "bytes": 32192
+  },
+  {
+    "name": "bus-stop",
+    "file": "bus-stop.glb",
+    "bytes": 25276
+  },
+  {
+    "name": "bench",
+    "file": "bench.glb",
+    "bytes": 16584
+  },
+  {
+    "name": "hydrant",
+    "file": "hydrant.glb",
+    "bytes": 24136
+  },
+  {
+    "name": "trash-bin",
+    "file": "trash-bin.glb",
+    "bytes": 29732
+  },
+  {
+    "name": "mailbox",
+    "file": "mailbox.glb",
+    "bytes": 18148
+  },
+  {
+    "name": "phone-booth",
+    "file": "phone-booth.glb",
+    "bytes": 20616
+  },
+  {
+    "name": "kiosk",
+    "file": "kiosk.glb",
+    "bytes": 23244
+  },
+  {
+    "name": "fountain",
+    "file": "fountain.glb",
+    "bytes": 69632
+  },
+  {
+    "name": "cone-cluster",
+    "file": "cone-cluster.glb",
+    "bytes": 28508
+  },
+  {
+    "name": "road-barrier",
+    "file": "road-barrier.glb",
+    "bytes": 9920
+  },
+  {
+    "name": "warning-sign",
+    "file": "warning-sign.glb",
+    "bytes": 13128
+  },
+  {
+    "name": "bollard",
+    "file": "bollard.glb",
+    "bytes": 17172
+  },
+  {
+    "name": "manhole",
+    "file": "manhole.glb",
+    "bytes": 29740
+  },
+  {
+    "name": "rooftop-ac",
+    "file": "rooftop-ac.glb",
+    "bytes": 51836
+  },
+  {
+    "name": "water-tank",
+    "file": "water-tank.glb",
+    "bytes": 65872
+  },
+  {
+    "name": "fire-escape",
+    "file": "fire-escape.glb",
+    "bytes": 58628
+  },
+  {
+    "name": "satellite-dish",
+    "file": "satellite-dish.glb",
+    "bytes": 36292
+  },
+  {
+    "name": "antenna-whip",
+    "file": "antenna-whip.glb",
+    "bytes": 28740
+  },
+  {
+    "name": "billboard",
+    "file": "billboard.glb",
+    "bytes": 24012
+  },
+  {
+    "name": "planter",
+    "file": "planter.glb",
+    "bytes": 22136
+  },
+  {
+    "name": "crates-stack",
+    "file": "crates-stack.glb",
+    "bytes": 37120
+  },
+  {
+    "name": "server-rack",
+    "file": "server-rack.glb",
+    "bytes": 55864
+  },
+  {
+    "name": "transformer-box",
+    "file": "transformer-box.glb",
+    "bytes": 45972
+  }
+]

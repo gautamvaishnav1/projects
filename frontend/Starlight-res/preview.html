@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Starlight-res — Generated Models Preview</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, sans-serif; background:#0b0d10; color:#dde3e8; display:flex; height:100vh; overflow:hidden; }
+  aside { width:280px; min-width:220px; background:#12151a; border-right:1px solid #1f242b; display:flex; flex-direction:column; }
+  header { padding:14px 16px 10px; border-bottom:1px solid #1f242b; }
+  h1 { font-size:15px; margin:0 0 2px; letter-spacing:.4px; }
+  small { color:#7c8794; }
+  #list { flex:1; overflow-y:auto; padding:6px; }
+  button.item { display:flex; justify-content:space-between; gap:8px; width:100%; text-align:left; background:none; border:0; color:#c3cbd3; font:inherit; font-size:13px; padding:7px 10px; border-radius:7px; cursor:pointer; }
+  button.item:hover { background:#1a2027; }
+  button.item.active { background:#23405a; color:#fff; }
+  button.item .kb { color:#66707c; font-size:11px; }
+  #stage { flex:1; position:relative; }
+  #hud { position:absolute; left:12px; bottom:10px; color:#7c8794; font-size:12px; user-select:none; }
+</style>
+<script type="importmap">
+{ "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<aside>
+  <header>
+    <h1>CodeCity · generated GLBs</h1>
+    <small id="count"></small>
+  </header>
+  <div id="list"></div>
+</aside>
+<main id="stage"></main>
+<div id="hud">drag orbit · wheel zoom · right-drag pan</div>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+const stage = document.getElementById('stage');
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setSize(stage.clientWidth, stage.clientHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+stage.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0b0d10);
+const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 4000);
+camera.position.set(18, 14, 22);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.autoRotate = true;
+controls.autoRotateSpeed = 1.2;
+
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), .04).texture;
+scene.add(new THREE.HemisphereLight(0xbfd6e4, 0x30281e, .5));
+const sun = new THREE.DirectionalLight(0xffffff, 2.2);
+sun.position.set(20, 34, 16);
+scene.add(sun);
+
+const grid = new THREE.GridHelper(200, 40, 0x2a3340, 0x171c23);
+grid.position.y = -0.01;
+scene.add(grid);
+const shadowCatcher = new THREE.Mesh(
+  new THREE.CircleGeometry(60, 48),
+  new THREE.ShadowMaterial({ opacity: .28 })
+);
+shadowCatcher.rotation.x = -Math.PI / 2;
+scene.add(shadowCatcher);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left:-50, right:50, top:50, bottom:-50 });
+renderer.shadowMap.enabled = true;
+
+let current = null;
+const loader = new GLTFLoader();
+
+function fit(obj) {
+  const box = new THREE.Box3().setFromObject(obj);
+  const size = box.getSize(new THREE.Vector3());
+  const center = box.getCenter(new THREE.Vector3());
+  const maxDim = Math.max(size.x, size.y, size.z) || 1;
+  const dist = maxDim / (2 * Math.tan((camera.fov * Math.PI) / 360)) * 1.9;
+  controls.target.copy(center);
+  camera.position.set(center.x + dist * .55, center.y + dist * .5, center.z + dist * .8);
+  controls.update();
+}
+
+function show(name) {
+  if (current) { scene.remove(current); current.traverse(o => o.geometry?.dispose()); }
+  loader.load(`models/generated/${name}.glb`, (gltf) => {
+    gltf.scene.traverse(o => { if (o.isMesh) { o.castShadow = true; } });
+    current = gltf.scene;
+    scene.add(current);
+    fit(current);
+    document.querySelectorAll('button.item').forEach(b => b.classList.toggle('active', b.dataset.name === name));
+  });
+}
+
+async function init() {
+  const res = await fetch('models/generated/manifest.json');
+  const items = await res.json();
+  document.getElementById('count').textContent = `${items.length} models · ${(items.reduce((a,i)=>a+i.bytes,0)/1048576).toFixed(1)} MB`;
+  const list = document.getElementById('list');
+  for (const it of items) {
+    const b = document.createElement('button');
+    b.className = 'item';
+    b.dataset.name = it.name;
+    b.innerHTML = `<span>${it.name}</span><span class="kb">${(it.bytes/1024).toFixed(0)} KB</span>`;
+    b.onclick = () => show(it.name);
+    list.appendChild(b);
+  }
+  show(items[0].name);
+}
+init();
+
+addEventListener('resize', () => {
+  camera.aspect = stage.clientWidth / stage.clientHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(stage.clientWidth, stage.clientHeight);
+});
+renderer.setAnimationLoop(() => { controls.update(); renderer.render(scene, camera); });
+</script>
+</body>
+</html>
