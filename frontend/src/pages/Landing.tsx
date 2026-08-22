@@ -247,6 +247,33 @@ function AtlasSection() {
   );
 }
 
+/* ── trust strip — big numbers build credibility (dev-tool pattern) ─ */
+
+const TRUST: Array<[string, string, string]> = [
+  ["1.2K", "FILES PER CITY", "average repo mapped"],
+  ["8.2s", "CITY BUILD TIME", "clone to walkable plan"],
+  ["4 DAYS", "AVG ONBOARDING", "down from months"],
+  ["100%", "OPEN SPEC", "plain JSON city format"],
+];
+
+function TrustStrip() {
+  return (
+    <section aria-label="Key numbers" className="sheet">
+      <dl className="grid grid-cols-2 gap-px border border-black-ink/25 bg-black-ink/25 md:grid-cols-4">
+        {TRUST.map(([v, t, sub], i) => (
+          <Reveal key={t} delay={i * 80} className="bg-paper">
+            <div className="flex h-full flex-col gap-1 px-5 py-6">
+              <dd className="display-caps text-4xl md:text-5xl">{v}</dd>
+              <dt className="caption-caps font-bold">{t}</dt>
+              <p className="caption-caps text-black-ink/45">{sub}</p>
+            </div>
+          </Reveal>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
 /* ── quote band — inversion moment ───────────────────────────────── */
 
 function QuoteBand() {
@@ -372,6 +399,62 @@ function Stat({ n, v, suffix }: { n: string; v: number; suffix?: string }) {
   );
 }
 
+/* ── FAQ — accordion, near the end (dev-tool standard) ───────────── */
+
+const FAQS: Array<[string, string]> = [
+  ["DOES CODECITY STORE MY CODE?", "No. The analyzer reads your repository, derives the city plan as JSON, and keeps only that plan. Your source never leaves your infrastructure."],
+  ["WHICH STACKS ARE SUPPORTED?", "Anything with a file tree and imports. The current plate is tuned for MERN — React frontends, Express APIs, Node services, MongoDB schemas."],
+  ["CAN I USE IT WITHOUT AN ACCOUNT?", "Yes — look all you want. An account is only asked for when you launch the live app and save plans."],
+  ["HOW BIG CAN A REPO BE?", "Cities of a few thousand buildings stay interactive. Beyond that, districts collapse into blocks you can expand on demand."],
+  ["IS THE CITY FORMAT OPEN?", "Yes. The plan is plain JSON — documented, versioned, and yours to export or pipe into other tools."],
+];
+
+function Faq() {
+  const [open, setOpen] = useState<number | null>(0);
+  return (
+    <section id="faq" className="sheet scroll-mt-8 py-20 md:py-28">
+      <SecHead n="04" t="FAQ" meta="PRACTICAL QUESTIONS, PLAIN ANSWERS" />
+      <div className="grid grid-cols-12 gap-x-6 gap-y-12">
+        <div className="col-span-12 lg:col-span-9">
+          {FAQS.map(([q, a], i) => {
+            const isOpen = open === i;
+            return (
+              <Reveal key={q} delay={i * 60}>
+                <div className={`border-t border-black-ink/25 ${i === FAQS.length - 1 ? "border-b" : ""}`}>
+                  <button
+                    type="button"
+                    aria-expanded={isOpen}
+                    onClick={() => setOpen(isOpen ? null : i)}
+                    className="flex w-full items-baseline justify-between gap-6 py-5 text-left"
+                  >
+                    <span className="display-caps text-xl md:text-2xl">{q}</span>
+                    <span aria-hidden className={`text-2xl font-black text-signal transition-transform duration-150 ${isOpen ? "rotate-45" : ""}`}>
+                      +
+                    </span>
+                  </button>
+                  <div className={`grid transition-[grid-template-rows] duration-200 ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+                    <div className="overflow-hidden">
+                      <p className="max-w-[62ch] pb-6 text-[15px] leading-6 text-black-ink/80">{a}</p>
+                    </div>
+                  </div>
+                </div>
+              </Reveal>
+            );
+          })}
+        </div>
+        <aside className="col-span-12 flex flex-col gap-8 lg:col-span-3 lg:border-l lg:border-black-ink/25 lg:pl-6">
+          <p className="caption-caps leading-relaxed text-black-ink/55">
+            STILL PRINTING PROOFS?
+            <br />
+            THE INDEX ON TOP NAVIGATES; THE PANEL BELOW LAUNCHES.
+          </p>
+          <p className="caption-caps mt-auto text-black-ink/45">FIG. 07 — QUESTIONS SET IN INK</p>
+        </aside>
+      </div>
+    </section>
+  );
+}
+
 /* ── launch panel — form follows function ────────────────────────── */
 
 function LaunchPanel({ onLaunch, onLaunchIntent }: { onLaunch: () => void; onLaunchIntent?: () => void }) {
@@ -471,6 +554,8 @@ export default function Landing({ onLaunch, onLaunchIntent }: { onLaunch: () => 
       <main>
         <Hero onLaunch={onLaunch} onLaunchIntent={onLaunchIntent} />
         <RuleHeavy />
+        <TrustStrip />
+        <RuleHeavy />
         <RasterSection />
         <RuleHeavy />
         <AtlasSection />
@@ -479,6 +564,8 @@ export default function Landing({ onLaunch, onLaunchIntent }: { onLaunch: () => 
         <RuleHeavy />
         <ZeitSection />
         <TickerBand phrase="CODE BECOMES CITY" />
+        <Faq />
+        <RuleHeavy />
         <LaunchPanel onLaunch={onLaunch} onLaunchIntent={onLaunchIntent} />
       </main>
 

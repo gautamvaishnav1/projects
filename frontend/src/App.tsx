@@ -1,7 +1,10 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from "react";
 import Landing from "./pages/Landing";
 const CityScene = lazy(() => import("./three/CityScene").then((m) => ({ default: m.CityScene })));
-import { HUD } from "./ui/HUD";
+// HUD pulls drei/three — lazy so the landing bundle stays 3D-free
+const HUD = lazy(() =>
+  import("./ui/HUD").then((m) => ({ default: m.HUD })),
+);
 import { CommandPalette, type PaletteItem } from "./components/ui/CommandPalette";
 import { AuthModal } from "./components/AuthModal";
 import { completeOauthFromUrl, useAuth } from "./lib/auth";
@@ -84,10 +87,10 @@ export default function App() {
       view === "landing"
         ? [
             { id: "launch", label: "Launch City", hint: "live demo", run: launch },
-            { id: "go-raster", label: "Go to 01 Raster", run: () => scrollToId("raster") },
-            { id: "go-satz", label: "Go to 02 Satz", run: () => scrollToId("satz") },
-            { id: "go-farben", label: "Go to 03 Farben", run: () => scrollToId("farben") },
-            { id: "go-zeit", label: "Go to 04 Zeit", run: () => scrollToId("zeit") },
+            { id: "go-raster", label: "Go to 01 System", run: () => scrollToId("raster") },
+            { id: "go-atlas", label: "Go to 02 Atlas", run: () => scrollToId("atlas") },
+            { id: "go-zeit", label: "Go to 03 Live Data", run: () => scrollToId("zeit") },
+            { id: "go-faq", label: "Go to FAQ", run: () => scrollToId("faq") },
             { id: "go-terminals", label: "Go to Launch panel", run: () => scrollToId("terminals") },
             { id: "top", label: "Back to top", run: () => window.scrollTo({ top: 0, behavior: "smooth" }) },
           ]

@@ -36,7 +36,12 @@ export function CityScene() {
   const L = useCityLayout();
   const cityEdges = useCity((s) => s.city.edges);
   return (
-    <Canvas shadows camera={{ position: [0, 70, 90], fov: 45 }} onPointerMissed={() => useCity.getState().select(null)}>
+    <Canvas
+      shadows
+      dpr={[1, 1.75]}
+      camera={{ position: [0, 70, 90], fov: 45 }}
+      onPointerMissed={() => useCity.getState().select(null)}
+    >
       <color attach="background" args={["#070b18"]} />
       <fogExp2 attach="fog" args={["#070b18", 0.002]} />
       {/* city renders immediately; ONLY the HDR is suspended */}
