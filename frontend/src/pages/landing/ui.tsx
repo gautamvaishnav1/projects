@@ -97,7 +97,7 @@ export function FolioBar({ mark, onLaunch }: { mark: string; onLaunch: () => voi
           <p className="truncate text-[11px] font-bold uppercase tracking-[0.22em]">{mark}</p>
         </div>
         <div className="flex items-center gap-5">
-          <FolioClock />
+          <LiveStatChip />
           <button type="button" onClick={onLaunch} className="btn-print solid !px-4 !py-2 !text-[10px]">
             Launch ▸
           </button>
@@ -255,23 +255,88 @@ export function TickerBand({ phrase }: { phrase: string }) {
   );
 }
 
-/* ── folio clock — compact live time beside Launch ───────────────── */
-export function FolioClock() {
-  const [now, setNow] = useState(() => new Date());
+/* ── live stat chip — rotating product numbers beside Launch ─────── */
+const CHIP_STATS = [
+  ["FILES MAPPED", "1,284"],
+  ["STREETS BUILT", "2,140"],
+  ["ONBOARDING", "4 DAYS"],
+];
+export function LiveStatChip() {
+  const [k, setK] = useState(0);
   useEffect(() => {
-    const id = window.setInterval(() => setNow(new Date()), 1000);
+    const id = window.setInterval(() => setK((v) => (v + 1) % CHIP_STATS.length), 3200);
     return () => window.clearInterval(id);
   }, []);
-  const p = (n: number) => String(n).padStart(2, "0");
+  const [label, val] = CHIP_STATS[k];
   return (
-    <span className="hidden items-baseline gap-1.5 font-mono text-[11px] font-bold tabular-nums text-black-ink/70 sm:flex">
+    <span className="hidden items-baseline gap-2 sm:flex">
       <span aria-hidden className="misreg inline-block h-1.5 w-1.5 rounded-full bg-signal" />
-      {p(now.getHours())}
-      <span className="clock-colon">:</span>
-      {p(now.getMinutes())}
-      <span className="clock-colon">:</span>
-      {p(now.getSeconds())}
-      <span className="caption-caps ml-1 text-black-ink/45">LOCAL</span>
+      <span key={k} className="stat-swap caption-caps font-bold">
+        {label} <span className="ml-1 text-signal tabular-nums">{val}</span>
+      </span>
     </span>
+  );
+}
+
+/* ── teletype — the analyzer at work, printed live ───────────────── */
+const TT_LINES: Array<[string, string]> = [
+  ["$ codecity analyze github.com/acme/payments", ""],
+  ["> cloning repository", "ok"],
+  ["> parsing 1,284 files · 6 languages", "ok"],
+  ["> districts — frontend 24 · backend 31 · db 7", "ok"],
+  ["> tallest: PaymentController.ts (2,140 LOC)", "ok"],
+  ["> streets: 2,140 dependencies wired", "ok"],
+  ["✓ city ready in 8.2s — press LAUNCH", ""],
+];
+
+export function Teletype() {
+  const [ref, seen] = useInView<HTMLDivElement>(0.3);
+  const [n, setN] = useState(0);
+  const staticAll = useRef(false);
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      staticAll.current = true;
+      setN(TT_LINES.length);
+      return;
+    }
+    if (!seen) return;
+    let t: number;
+    const step = () => {
+      setN((v) => (v >= TT_LINES.length ? 0 : v + 1));
+      t = window.setTimeout(step, n >= TT_LINES.length ? 4200 : 620);
+    };
+    t = window.setTimeout(step, 400);
+    return () => clearTimeout(t);
+  }, [seen, n]);
+
+  return (
+    <figure ref={ref}>
+      <div className="border-[1.5px] border-black-ink p-1.5">
+        <div className="bg-black-ink text-paper">
+          {/* header strip */}
+          <div className="flex items-center justify-between border-b border-paper/20 px-3 py-2">
+            <span className="caption-caps font-bold text-paper/70">CODECITY ANALYZER</span>
+            <span className="flex items-center gap-1.5">
+              <span aria-hidden className="rec-dot inline-block h-1.5 w-1.5 rounded-full bg-signal" />
+              <span className="caption-caps font-bold text-signal">LIVE</span>
+            </span>
+          </div>
+          {/* stream */}
+          <div role="img" aria-label="Animated demo of a repository being analyzed into a city" className="min-h-[168px] px-3 py-3 font-mono text-[11px] leading-[1.9] md:text-xs">
+            {TT_LINES.slice(0, n).map(([line, tag], i) => (
+              <p key={i} className={`tt-line whitespace-pre-wrap ${i === 0 ? "font-bold text-paper" : "text-paper/75"} ${line.startsWith("✓") ? "!text-signal font-bold" : ""}`}>
+                {line}
+                {tag && <span className="ml-2 border border-paper/30 px-1 text-[9px] tracking-widest text-paper/60">{tag}</span>}
+              </p>
+            ))}
+            <span aria-hidden className="tt-caret ml-0.5 inline-block h-[13px] w-[7px] translate-y-[2px] bg-paper" />
+          </div>
+        </div>
+      </div>
+      <figcaption className="flex items-baseline justify-between gap-4 pt-3">
+        <span className="caption-caps font-bold">FIG. 01 — REPO BECOMES CITY, CONTINUOUSLY</span>
+        <span className="caption-caps hidden text-black-ink/55 sm:block">LOOPED TRANSMISSION</span>
+      </figcaption>
+    </figure>
   );
 }

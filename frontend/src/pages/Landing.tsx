@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent, type MouseEvent } from "react";
-import { Reveal, FolioBar, StationClock, MiniCity, TickerBand, useInView, useCountUp } from "./landing/ui";
+import { Reveal, FolioBar, Teletype, MiniCity, TickerBand, useInView, useCountUp } from "./landing/ui";
 
 /* ═══ INTERNATIONALES ARCHIV — Swiss press system ══════════════════
    1958 Müller-Brockmann poster logic on a modern web grid.
@@ -35,32 +35,6 @@ function RuleHeavy() {
   return <hr aria-hidden className="rule-heavy" />;
 }
 
-/* ── hero clock strip — printed timetable header, live city time ── */
-function HeroClockStrip() {
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const id = window.setInterval(() => setNow(new Date()), 1000);
-    return () => window.clearInterval(id);
-  }, []);
-  const p = (n: number) => String(n).padStart(2, "0");
-  const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-  const date = `${days[now.getDay()]} · ${p(now.getDate())}.${p(now.getMonth() + 1)}.${now.getFullYear()}`;
-  return (
-    <div className="mt-10 flex max-w-xl items-stretch justify-between border-[1.5px] border-black-ink bg-black-ink text-paper">
-      <div className="flex items-baseline gap-1 px-4 py-3 md:px-5">
-        <span className="font-mono text-4xl font-black tabular-nums leading-none md:text-5xl">{p(now.getHours())}</span>
-        <span className="clock-colon font-mono text-4xl font-black leading-none md:text-5xl">:</span>
-        <span className="font-mono text-4xl font-black tabular-nums leading-none md:text-5xl">{p(now.getMinutes())}</span>
-        <span className="ml-2 font-mono text-sm font-bold text-signal tabular-nums">{p(now.getSeconds())}</span>
-      </div>
-      <div className="hidden flex-col justify-center border-l border-paper/25 px-4 py-2 sm:flex">
-        <span className="caption-caps text-paper/60">{date}</span>
-        <span className="caption-caps mt-1 font-bold text-signal">CITY TIME — VALID ALL DAY</span>
-      </div>
-    </div>
-  );
-}
-
 /* ── hero — asymmetric 8 / 4 split ───────────────────────────────── */
 
 function Hero({ onLaunch }: { onLaunch: () => void }) {
@@ -86,9 +60,6 @@ function Hero({ onLaunch }: { onLaunch: () => void }) {
               <span className="misreg inline-block bg-signal px-[0.09em] text-paper">CITY</span>
             </span>
           </h1>
-          <Reveal delay={550}>
-            <HeroClockStrip />
-          </Reveal>
           <Reveal delay={650}>
             <p className="mt-8 max-w-[54ch] text-[15px] leading-6 text-black-ink/80">
               CodeCity AI draws a city plan from your source code: every file a building,
@@ -113,7 +84,7 @@ function Hero({ onLaunch }: { onLaunch: () => void }) {
 
         <div className="col-span-12 flex flex-col justify-end gap-10 lg:col-span-4">
           <Reveal delay={250}>
-            <StationClock />
+            <Teletype />
           </Reveal>
           <Reveal delay={400}>
             <MiniCity />

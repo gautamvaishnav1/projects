@@ -593,3 +593,35 @@ body {
     animation: none !important;
   }
 }
+
+/* teletype — blinking block cursor + rec pulse + rotating stat */
+@keyframes tt-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+.tt-caret {
+  animation: tt-blink 0.9s steps(1, end) infinite;
+}
+@keyframes rec-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+.rec-dot {
+  animation: rec-pulse 1.4s ease-in-out infinite;
+}
+@keyframes stat-swap {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.stat-swap {
+  display: inline-block;
+  animation: stat-swap 0.35s var(--ease-soft) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tt-caret,
+  .rec-dot,
+  .clock-colon,
+  .stat-swap {
+    animation: none !important;
+  }
+}
