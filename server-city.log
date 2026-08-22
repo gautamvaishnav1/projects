@@ -1,0 +1,24 @@
+2026-08-22T18:57:25.343Z [INFO] MongoDB connected -> 127.0.0.1/software-world
+2026-08-22T18:57:25.359Z [INFO] Socket.IO ready (JWT handshake required, dev mode)
+2026-08-22T18:57:25.375Z [INFO] Software World API listening on port 5000 (development)
+2026-08-22T18:57:25.376Z [INFO] Health:      http://localhost:5000/health
+2026-08-22T18:57:25.376Z [INFO] Auth:        POST http://localhost:5000/api/v1/auth/register
+2026-08-22T18:57:28.205Z [HTTP] POST /api/v1/auth/login -> 200 (169ms)
+2026-08-22T18:57:28.228Z [HTTP] GET /api/v1/projects -> 200 (12ms)
+2026-08-22T18:57:28.824Z [HTTP] POST /api/v1/projects/6a89c763fba6f11f175c0fbc/analyze -> 202 (584ms)
+2026-08-22T18:57:31.850Z [HTTP] GET /api/v1/analyses/6a89f1189b04e7b54b11b367/status -> 200 (8ms)
+2026-08-22T18:57:31.905Z [INFO] Repository downloaded {"repo":"gautamvaishnav1/firstReactProject","branch":"main","bytes":472085}
+2026-08-22T18:57:32.015Z [INFO] Repository parsed {"repo":"gautamvaishnav1/firstReactProject","files":16,"babel":16,"fallback":0,"routes":2,"models":0,"truncated":false}
+2026-08-22T18:57:33.417Z [WARN] LLM architect failed, falling back to heuristic mode {"error":"LLM API error (429)"}
+(node:24776) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
+(Use `node --trace-warnings ...` to show where the warning was created)
+2026-08-22T18:57:33.466Z [INFO] Analysis completed {"analysisId":"6a89f1189b04e7b54b11b367","repo":"gautamvaishnav1/firstReactProject","engine":"heuristic","components":4,"connections":2,"durationMs":4658}
+2026-08-22T18:57:34.867Z [HTTP] GET /api/v1/analyses/6a89f1189b04e7b54b11b367/status -> 200 (5ms)
+2026-08-22T18:57:34.884Z [HTTP] POST /api/v1/projects/6a89c763fba6f11f175c0fbc/analyze -> 202 (11ms)
+2026-08-22T18:57:36.456Z [INFO] Repository downloaded {"repo":"gautamvaishnav1/firstReactProject","branch":"main","bytes":472085}
+2026-08-22T18:57:36.500Z [INFO] Repository parsed {"repo":"gautamvaishnav1/firstReactProject","files":16,"babel":16,"fallback":0,"routes":2,"models":0,"truncated":false}
+2026-08-22T18:57:37.127Z [WARN] LLM architect failed, falling back to heuristic mode {"error":"LLM API error (429)"}
+(node:24776) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
+2026-08-22T18:57:37.145Z [INFO] Analysis completed {"analysisId":"6a89f11e9b04e7b54b11b368","repo":"gautamvaishnav1/firstReactProject","engine":"heuristic","components":4,"connections":2,"durationMs":2251}
+2026-08-22T18:57:37.898Z [HTTP] GET /api/v1/analyses/6a89f11e9b04e7b54b11b368/status -> 200 (10ms)
+2026-08-22T18:57:37.914Z [HTTP] GET /api/v1/projects/6a89c763fba6f11f175c0fbc/architecture -> 200 (11ms)
