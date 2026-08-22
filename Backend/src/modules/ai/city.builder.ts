@@ -269,22 +269,37 @@ export function buildCityWorld(
   };
 
   /* ---------- districts ---------- */
-  const usedKeys = new Set(comps.map((c) => districtKeyFor(c.type)));
+
+  // group members per district first; bounds scale with member count so big
+  // repos never spill outside a district (validation would reject that).
+  const membersBySpec = new Map<string, typeof comps>();
+  for (const spec of Object.values(DISTRICT_SPECS)) {
+    const members = comps.filter((c) => districtKeyFor(c.type) === spec.id.replace("-district", ""));
+    if (members.length) membersBySpec.set(spec.id, members);
+  }
+  const boundsFor = (n: number): { width: number; depth: number } => {
+    const cols = Math.ceil(Math.sqrt(n));
+    const span = Math.max(1, cols - 1) * GRID_CELL;
+    const size = Math.max(DISTRICT_BOUNDS.width, span + GRID_CELL * 2);
+    return { width: size, depth: size };
+  };
+
+const usedKeys = new Set(comps.map((c) => districtKeyFor(c.type)));
   const districts: District[] = Object.values(DISTRICT_SPECS)
     .filter((spec) => usedKeys.has(spec.id.replace("-district", "") as keyof typeof DISTRICT_SPECS))
     .map((spec) => ({
       id: spec.id,
       name: spec.name,
       position: { ...spec.slot },
-      bounds: { ...DISTRICT_BOUNDS },
+      bounds: boundsFor(membersBySpec.get(spec.id)?.length ?? 1),
       color: spec.color
     }));
 
-  // grid layout inside each district, centered, deterministic order
+  // grid layout inside each district, centered, deterministic order.
   const positionById = new Map<string, Position3>();
   for (const spec of Object.values(DISTRICT_SPECS)) {
-    const members = comps.filter((c) => districtKeyFor(c.type) === spec.id.replace("-district", ""));
-    if (!members.length) continue;
+    const members = membersBySpec.get(spec.id);
+    if (!members) continue;
     const cols = Math.ceil(Math.sqrt(members.length));
     members.forEach((c, i) => {
       const col = i % cols;

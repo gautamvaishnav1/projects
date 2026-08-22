@@ -55,7 +55,8 @@ export async function startAnalysis(
     void runPipeline({ analysis, project, projectId, analysisId, repoUrl: project.repoUrl })
     .catch(async (err: unknown) => {
       const message = err instanceof Error ? err.message : String(err);
-      logger.error("Analysis failed", { analysisId, error: message });
+      const details = (err as { details?: unknown }).details;
+      logger.error("Analysis failed", { analysisId, error: message, details });
       await AnalysisModel.findByIdAndUpdate(analysisId, {
         status: "failed",
         error: { message },
