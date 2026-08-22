@@ -2,8 +2,7 @@ import { Suspense, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Environment } from "@react-three/drei";
 import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
-import { buildLayout } from "../lib/layout";
-import { SAMPLE_CITY } from "../data/sampleCity";
+import { LAYOUT } from "../lib/city";
 import { useCity } from "../store/useCity";
 import { Building, District, NightMaterials } from "./Buildings";
 import { Ground, Roads, Underground, Decor, Links } from "./Infrastructure";
@@ -25,9 +24,6 @@ function SkyEnvironment() {
   return <Environment key={files[0]} files={files} background={false} environmentIntensity={day ? 0.55 : 0.25} />;
 }
 
-export const LAYOUT = buildLayout(SAMPLE_CITY);
-
-/** kick off GLB preloading once the module loads */
 export function usePreload() {
   useEffect(() => { preloadAll(); }, []);
 }

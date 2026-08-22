@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, Play, Bug, Radio, CloudRain, CloudLightning, CloudDrizzle, CloudFog, Snowflake, Sun, Link2, Moon } from "lucide-react";
 import { setAudioEnabled } from "../three/audio";
-import { LAYOUT } from "../three/CityScene";
+import { LAYOUT } from "../lib/city";
 import { useCity } from "../store/useCity";
 import { SAMPLE_CITY } from "../data/sampleCity";
 
@@ -60,6 +60,29 @@ export function HUD() {
   const [q, setQ] = useState(""); const [legend, setLegend] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   useEffect(() => { const h = (e: KeyboardEvent) => { if (e.key === "/") { e.preventDefault(); input.current?.focus(); } }; window.addEventListener("keydown", h); return () => window.removeEventListener("keydown", h); }, []);
+  // global shortcuts: T traffic · U underground · K links · F follow-cam · Enter run login · Esc deselect
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      const st = useCity.getState();
+      switch (e.key.toLowerCase()) {
+        case "t": st.patch({ traffic: !st.traffic }); break;
+        case "u": st.patch({ underground: !st.underground }); break;
+        case "k": st.patch({ links: !st.links }); break;
+        case "f": st.patch({ following: !st.following }); if (!st.following) st.notify("🚗 Follow-cam engaged"); break;
+        case "enter": {
+          const b = LAYOUT.byId.get("fe-login")!;
+          st.patch({ traffic: true, following: true });
+          st.notify("🚗 POST /api/auth/login dispatched");
+          st.setFocus(b.pos[0], b.pos[2]);
+          break;
+        }
+        case "escape": st.select(null); break;
+      }
+    };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, []);
   // 6s auto-timeout for notifications
   const nts = useCity((st) => st.notifications);
   useEffect(() => {

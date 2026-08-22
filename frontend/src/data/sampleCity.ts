@@ -106,5 +106,6 @@ export const SAMPLE_CITY: CityJSON = {
   flows: {
     login: ["fe-login", "be-authroute", "be-authctrl", "be-authsvc", "db-users"],
     payment: ["fe-payment", "be-payroute", "be-payctrl", "be-paysvc", "ext-stripe", "db-payments", "db-orders"],
+    cart: ["fe-cart", "be-cartroute", "be-cartctrl", "db-carts"],
   },
 };
