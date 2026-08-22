@@ -86,10 +86,11 @@ export const pick = <T,>(arr: T[], seed: number): T => arr[Math.abs(Math.floor(s
  * GLB fetches by ~70% and gets the city on screen much faster.
  */
 export function preloadAll() {
-  [...SKYSCRAPERS, ...CHIMNEYS, ...TANKS,
-   ...VEHICLE_FAST.slice(0, 2), ...VEHICLE_MED.slice(0, 3), ...VEHICLE_SLOW.slice(0, 2), VEHICLE_HERO,
-   SOLDIER, ...CHARACTERS.slice(0, 6),
-   BRIDGE, BARRIER, CONE,
-   PROP.bench, PROP.hydrant, PROP.trashBin, PROP.mailbox, PROP.fountain, PROP.planter, PROP.billboard,
+  // Buildings first — they ARE the skyline. Then vehicles/people/props.
+  [...COMMERCIAL, ...SUBURBAN, ...INDUSTRIAL, ...SKYSCRAPERS, ...CHIMNEYS, ...TANKS,
+   ...VEHICLE_FAST.slice(0, 3), ...VEHICLE_MED.slice(0, 4), ...VEHICLE_SLOW.slice(0, 3), VEHICLE_HERO,
+   SOLDIER, ...CHARACTERS.slice(0, 8),
+   BRIDGE, BARRIER, CONE, STREET_LIGHT,
+   ...Object.values(PROP),
   ].forEach((u) => useGLTF.preload(u));
 }
