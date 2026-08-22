@@ -6,12 +6,27 @@ import type { CityLayout } from "../lib/layout";
 import { useCity, followTarget } from "../store/useCity";
 import { ENV } from "./env";
 import { VEHICLE_FAST, VEHICLE_MED, VEHICLE_SLOW, VEHICLE_HERO, pick } from "./assets";
+import { TollGate } from "./Toll";
 
 const SPEED = { fast: 0.1, medium: 0.045, slow: 0.018 };
 const LAT_COLOR = { fast: "#22c55e", medium: "#eab308", slow: "#ef4444" };
 
-/** build a curve from a flow id chain; missing ids are warned and skipped */
-function makeCurve(L: CityLayout, ids: string[]): THREE.CatmullRomCurve3 | null {
+/**
+ * Build a driving curve for a flow. Prefers the hand-authored street lane in
+ * L.flowPaths (cars ride actual roads); falls back to building centers only
+ * when no lane exists for that flow.
+ */
+function makeCurve(L: CityLayout, name: string, ids: string[]): THREE.CatmullRomCurve3 | null {
+  const lanePts = L.flowPaths?.[name];
+  if (lanePts && lanePts.length >= 2) {
+    return new THREE.CatmullRomCurve3(
+      lanePts.map(([x, y, z]) => new THREE.Vector3(x, y + 0.06, z)),
+      false,
+      "catmullrom",
+      0.08,
+    );
+  }
+  console.warn(`[Traffic] no street lane for "${name}" — falling back to building centers`);
   const pts = ids.filter(Boolean).map((id) => {
     const b = L.byId.get(id);
     if (!b) console.warn(`[Traffic] unknown flow id "${id}" — skipped`);
@@ -63,12 +78,14 @@ function Car({ curve, offset, latencyKey, hero, stuck, color }: any) {
     () => (hero ? VEHICLE_HERO : key === "fast" ? pick(VEHICLE_FAST, offset * 100) : key === "medium" ? pick(VEHICLE_MED, offset * 100) : pick(VEHICLE_SLOW, offset * 100)),
     [key, offset, hero],
   );
-  useFrame((_, dt) => {
+  useFrame((_, rawDt) => {
+    const dt = Math.min(rawDt, 0.05); // clamp tab-switch/GC spikes → no teleporting actors
     if (!stuck) t.current = (t.current + dt * SPEED[cur]) % 1;
     const u = stuck ? 0.55 : t.current;
     const p = curve.getPointAt(u), tan = curve.getTangentAt(u);
-    // lift over the bridge span (|x| < ~6); smoothstep ramps it up/down
-    const lift = (1 - THREE.MathUtils.smoothstep(Math.abs(p.x), 4, 8)) * 1.5;
+    // deck top sits at y=1.5; lane waypoints already carry BRIDGE_Y over water.
+    // add only a small clearance bump so wheels never clip the deck slab.
+    const lift = (1 - THREE.MathUtils.smoothstep(Math.abs(p.x), 4.8, 7)) * 0.35;
     ref.current.position.set(p.x, p.y + lift, p.z);
     ref.current.lookAt(p.clone().add(tan));
     if (hero) { followTarget.active = true; followTarget.x = p.x; followTarget.z = p.z; }
@@ -87,10 +104,11 @@ function Truck({ curve, offset }: { curve: THREE.CatmullRomCurve3; offset: numbe
   const ref = useRef<THREE.Group>(null!);
   const t = useRef(offset);
   const url = useMemo(() => pick(VEHICLE_SLOW, offset * 777), [offset]);
-  useFrame((_, dt) => {
+  useFrame((_, rawDt) => {
+    const dt = Math.min(rawDt, 0.05); // clamp tab-switch/GC spikes → no teleporting actors
     t.current = (t.current + dt * SPEED.slow * 0.55) % 1;
     const p = curve.getPointAt(t.current), tan = curve.getTangentAt(t.current);
-    const lift = (1 - THREE.MathUtils.smoothstep(Math.abs(p.x), 4, 8)) * 1.5;
+    const lift = (1 - THREE.MathUtils.smoothstep(Math.abs(p.x), 4.8, 7)) * 0.35;
     ref.current.position.set(p.x, p.y + lift, p.z);
     ref.current.lookAt(p.clone().add(tan));
   });
@@ -115,7 +133,7 @@ export function Traffic({ L }: { L: CityLayout }) {
   const flows = useCity((s) => s.city.flows);
   const curves = useMemo(() => {
     const out: Record<string, THREE.CatmullRomCurve3 | null> = {};
-    for (const [name, ids] of Object.entries(flows ?? {})) out[name] = makeCurve(L, ids as string[]);
+    for (const [name, ids] of Object.entries(flows ?? {})) out[name] = makeCurve(L, name, ids as string[]);
     return out;
   }, [flows, L]);
 
@@ -125,6 +143,7 @@ export function Traffic({ L }: { L: CityLayout }) {
   const failB = failingId ? L.byId.get(failingId) : L.byId.get("be-payctrl");
   return (
     <group>
+      <TollGate x={L.toll.x} z={L.toll.z} lanes={[...L.toll.lanes]} open={!failing} />
       {traffic && <>
         {curves.login && <Car curve={curves.login} offset={0.1} hero />}
         {curves.login && <Car curve={curves.login} offset={0.6} color="#38bdf8" />}

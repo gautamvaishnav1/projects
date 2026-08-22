@@ -23,6 +23,8 @@ export interface Dash {
 }
 /** 3D waypoint chain (x, y, z) a car follows; y lifts it onto the bridge deck. */
 export type Waypoint = [number, number, number];
+/** the JWT toll plaza on the western approach to the bridge */
+export interface TollInfo { x: number; z: number; lanes: readonly number[] }
 export interface CityLayout {
   buildings: LaidBuilding[];
   districts: LaidDistrict[];
@@ -35,6 +37,7 @@ export interface CityLayout {
   dashes: Dash[];
   flowPaths: Record<string, Waypoint[]>;
   byId: Map<string, LaidBuilding>;
+  toll: TollInfo;
 }
 
 export const KIND_COLOR: Record<Kind, string> = {
@@ -66,7 +69,7 @@ const mulberry = (seed: number) => () => {
 
 // ─── lane helpers ────────────────────────────────────────────────────────────
 const ROAD_Y = 0.18;
-const BRIDGE_Y = 0.96;
+const BRIDGE_Y = 1.54; // deck top is y=1.5 — wheels ride just above
 /** right-hand-traffic: shift every leg of the polyline sideways by `off` */
 function lane(pts: Waypoint[], off = 0.75): Waypoint[] {
   const rights: [number, number][] = [];
@@ -84,11 +87,20 @@ function lane(pts: Waypoint[], off = 0.75): Waypoint[] {
       [b[0] + rights[i][0], b[1], b[2] + rights[i][1]],
     ]);
   }
+  // miter join: intersect consecutive offset legs so corners stay sharp
   const out: Waypoint[] = [shifted[0][0]];
   for (let i = 1; i < shifted.length; i++) {
-    const prevEnd = shifted[i - 1][1];
-    const curStart = shifted[i][0];
-    out.push([(prevEnd[0] + curStart[0]) / 2, prevEnd[1], (prevEnd[2] + curStart[2]) / 2]);
+    const [p0, p1] = shifted[i - 1];
+    const [q0, q1] = shifted[i];
+    const d1x = p1[0] - p0[0], d1z = p1[2] - p0[2];
+    const d2x = q1[0] - q0[0], d2z = q1[2] - q0[2];
+    const den = d1x * d2z - d1z * d2x;
+    if (Math.abs(den) < 1e-6) {
+      out.push([p1[0], p1[1], p1[2]]); // parallel legs — plain midpoint
+    } else {
+      const tt = ((q0[0] - p0[0]) * d2z - (q0[2] - p0[2]) * d2x) / den;
+      out.push([p0[0] + d1x * tt, p1[1], p0[2] + d1z * tt]);
+    }
   }
   out.push(shifted[shifted.length - 1][1]);
   return out;
@@ -165,7 +177,7 @@ export function buildLayout(city: CityJSON): CityLayout {
     // east-west trunk through the bridge
     { a: [-42, -8], b: [-6, -8], w: 5, kind: "highway" },
     { a: [6, -8], b: [42, -8], w: 5, kind: "highway" },
-    { a: [-6, -8], b: [6, -8], w: 5, kind: "bridge" }, // formal span (deck drawn separately)
+    // NOTE: no road plane across the water — the real deck lives in Infrastructure.tsx
     // database platform ramps + external spur
     { a: [24, 54], b: [42, 44], w: 5, kind: "highway" },
     { a: [-42, 44], b: [-24, 54], w: 5, kind: "highway" },
@@ -223,10 +235,12 @@ export function buildLayout(city: CityJSON): CityLayout {
 
   // ── vehicle lanes: routes follow streets, not building centers ──
   const bridgeEast = (): Waypoint[] => [
-    P(-7.5, -8),
-    P(-6, -8, BRIDGE_Y),
-    P(6, -8, BRIDGE_Y),
-    P(7.5, -8),
+    P(-11, -8),
+    P(-8.2, -8, 0.85),   // climbing the west ramp slab
+    P(-6.2, -8, BRIDGE_Y),
+    P(6.2, -8, BRIDGE_Y),
+    P(8.2, -8, 0.85),    // descending the east ramp slab
+    P(11, -8),
   ];
 
   const loginRaw: Waypoint[] = [
@@ -325,7 +339,20 @@ export function buildLayout(city: CityJSON): CityLayout {
     cart: lane(cartRaw),
   };
 
+  // ── commuters: pedestrians walk real commute lines along district rings ──
+  people.length = 0;
+  for (const d of districts) {
+    if (d.stack === "database") continue;
+    people.push({ a: [d.center[0] - 13.2, d.center[1] + 10.6], b: [d.center[0] + 13.2, d.center[1] + 10.6] });
+    people.push({ a: [d.center[0] + 13.2, d.center[1] - 10.6], b: [d.center[0] - 13.2, d.center[1] - 10.6] });
+  }
+  people.push({ a: [-44, -29], b: [-40, 52] });   // west avenue commute
+  people.push({ a: [40, -29], b: [44, 44] });     // east avenue commute
+
   const byId = new Map(buildings.map((b) => [b.id, b]));
-  return { buildings, districts, roads, bridges: [-8], trees, lamps, people, pipes, dashes, flowPaths, byId };
+  return {
+    buildings, districts, roads, bridges: [-8], trees, lamps, people, pipes, dashes, flowPaths, byId,
+    toll: { x: -13, z: -8, lanes: [-2.1, 0, 2.1] },
+  };
 }
 

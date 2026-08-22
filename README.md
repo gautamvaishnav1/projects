@@ -1,216 +1,216 @@
+<div align="center">
+
 # 🏙 CodeCity AI
 
-**CodeCity AI** turns any GitHub JavaScript/TypeScript repository into an interactive, animated **3D isometric city** — every file becomes a building, every dependency a road, every API route a glowing pipeline. Explore your architecture like a city, ask an AI architect questions about it, and watch a character walk through your codebase.
+**Turn any GitHub repository into a living, breathing 3D city.**
 
-> Hackathon MVP built as a monorepo: 3D web frontend + AI analysis backend + standalone analyzer & auth microservices.
+Every file becomes a building · every dependency a road · every API route a glowing pipeline.
+Walk through your architecture, ask an AI architect about it, and watch the city come alive.
 
----
+`React 19` · `Three.js` · `Node + Express` · `MongoDB` · `LLM-powered analysis`
 
-## ✨ Features
-
-- 🔍 **Repo → City**: Clone/download any public GitHub repo and get a validated, 3D-ready CityJSON architecture graph
-- 🧠 **AI Architect**: LLM-powered architecture reasoning (OpenAI-compatible APIs) with deterministic heuristic fallback when no key is set
-- 💬 **AI Chat**: Ask questions about your architecture ("where is auth handled?") and get component-validated answers + graph paths
-- 🌆 **3D World**: React Three Fiber scene with buildings, districts, neon roads, traffic particles, underground pipelines & ocean plane
-- 🎮 **HUD & Controls**: Camera rig, command palette (`Ctrl+K`), building inspector, telemetry cards
-- ⚡ **Realtime**: Socket.IO events for live analysis progress & character movement/explanations
-- 🔐 **Auth**: Register/login with JWT, email OTP verification, Google & GitHub OAuth
-- 🧪 **Tested**: Vitest unit test suite covering parser, auth, chat, city builder, middleware & more
+</div>
 
 ---
 
-## 🗂 Monorepo Structure
+## ✨ What it does
 
-```
-projects/
-├── package.json            # Root runner — boots all services together
-├── frontend/               # React 19 + Vite + Three.js 3D world (port 5173)
-├── Backend/                # Express 5 + TS + Mongo + Socket.IO core API (port 5000)
-├── analyzer/               # Standalone repo→CityJSON microservice (port 8787)
-├── auth-server/            # Standalone JWT auth microservice (port 8788)
-└── server-city.log         # Dev server log
-```
+Paste a GitHub repo URL → CodeCity clones it, parses the AST of every file, builds a validated
+architecture graph, and renders it as an animated isometric city you can fly through:
 
-### Package overview
-
-| Package | Name | Stack | Port | Purpose |
-| :--- | :--- | :--- | :--- | :--- |
-| `frontend/` | `frontend` | React 19, Vite 8, Three.js / R3F, Tailwind CSS 4, Zustand, Motion, Lucide | 5173 | 3D isometric city UI, HUD, auth modal, command palette |
-| `Backend/` | `software-world-backend` | Node ≥18, Express 5, TypeScript, Mongoose 9, Socket.IO, Zod, Helmet | 5000 | Full pipeline: GitHub fetch → AST parse → metadata → AI architect → REST + realtime |
-| `analyzer/` | `codecity-analyzer` | Node ESM, Express, Babel parser/traverse, tar | 8787 | Lightweight `POST /api/analyze`: repo URL or local path → CityJSON |
-| `auth-server/` | `codecity-auth` | Node ESM, Express, bcryptjs, jsonwebtoken, nodemailer | 8788 | File-backed users, OTP email verification, OAuth start/callback |
+- 🔍 **Repo → City** — clone any public JS/TS repo and get a validated `CityJSON` architecture graph
+- 🧠 **AI Architect** — LLM-powered architecture reasoning (any OpenAI-compatible API) with a
+  deterministic heuristic fallback when no API key is set
+- 💬 **AI Chat** — ask *"where is auth handled?"* and get component-validated answers grounded in the graph
+- 🌆 **Living city** — traffic, weather, day/night cycle, lightning, water, pedestrians, ambient audio
+- 🔐 **Full auth** — email + OTP verification, JWT sessions, Google & GitHub OAuth
+- 📡 **Realtime** — Socket.IO progress events while your repo is analyzed
+- 🧪 **Tested** — 25+ Vitest suites covering parser, pipeline, auth, and services
 
 ---
 
-## 🚀 Quick Start
+## 🏗 Architecture
 
-### Prerequisites
-
-- **Node.js ≥ 18**
-- A **MongoDB** instance (local or Atlas) for the main backend
-- *(Optional)* GitHub token, OpenAI-compatible API key, SMTP creds, OAuth apps — see `.env.example`
-
-### 1. Install everything
-
-```bash
-# from the repo root
-npm install                 # root dev tooling (concurrently)
-npm run install:all         # installs deps in auth-server, analyzer & frontend
-cd Backend && npm install   # backend has its own lockfile
+```
+┌────────────────────┐        ┌─────────────────────────────────────────┐
+│  frontend  :5199   │  /api  │              Backend  :5000             │
+│  React 19 + Vite   │ ─────► │  Express · MongoDB · Socket.IO          │
+│  Three.js (R3F)    │  proxy │                                         │
+│  Tailwind v4       │ ◄───── │  auth ─ analysis ─ parser ─ ai ─ repos  │
+└────────────────────┘  ws    └────────────┬──────────────┬─────────────┘
+                                           │              │
+                                      GitHub API     LLM API
+                                      (clone/scan)   (OpenAI-compatible)
 ```
 
-### 2. Configure environment
+### Analysis pipeline
 
-```bash
-cp Backend/.env.example Backend/.env
 ```
-
-Key variables (see [`Backend/.env.example`](Backend/.env.example)):
-
-| Variable | Description | Default |
-| :--- | :--- | :--- |
-| `PORT` | Backend port | `5000` |
-| `MONGO_URI` | MongoDB connection string | `mongodb://127.0.0.1:27017/software-world` |
-| `JWT_SECRET` | Long random string | – |
-| `GITHUB_TOKEN` | Raises rate limit 60 → 5000/h | empty |
-| `LLM_API_KEY` | Empty = deterministic heuristic mode (no external calls) | empty |
-| `LLM_BASE_URL` / `LLM_MODEL` | Any OpenAI-compatible endpoint | OpenAI / `gpt-5.6` |
-| `GOOGLE_*` / `GITHUB_*` | OAuth client credentials | empty |
-| `SMTP_*` | OTP emails; empty = codes returned as `devCode` in dev | empty |
-
-### 3. Run everything at once
-
-```bash
-npm run dev     # AUTH + ANALYZER + WEB via concurrently (color-coded logs)
-npm start       # same, production mode
-```
-
-Or run each service individually:
-
-```bash
-# Terminal 1 — main backend (http://localhost:5000)
-cd Backend && npm run dev
-
-# Terminal 2 — analyzer (http://localhost:8787)
-cd analyzer && npm run dev
-
-# Terminal 3 — auth microservice (http://localhost:8788)
-cd auth-server && npm run dev
-
-# Terminal 4 — web (http://localhost:5173)
-cd frontend && npm run dev
+repo URL → github.service (clone/download)
+        → file-scanner (pick JS/TS files, size caps)
+        → babel.parser → ast-analyzer (per-file facts)
+        → metadata.builder → fallback-extractor
+        → architecture.schema (Zod-validated CityJSON)
+        → city.builder (3D layout: buildings, roads, districts)
+        → AI architect (optional LLM pass / heuristic fallback)
+        → Socket.IO progress → frontend renders the city
 ```
 
 ---
 
-## 🔄 How It Works (Golden Demo Flow)
+## 📦 Monorepo layout
+
+| Path | What it is | Stack |
+|---|---|---|
+| `frontend/` | 3D web app — landing page, auth modal, city renderer, HUD, AI chat | React 19, Vite, R3F/Three.js, Tailwind v4, Zustand, Motion |
+| `Backend/` | API server — auth, analysis pipeline, AI chat, projects, realtime | Node ≥18, Express, TypeScript, Mongoose, Zod, Vitest |
+| `demo/` | Reference sample app used as an analysis demo target (third-party hotel-booking system) | Next.js + Express |
 
 ```
-GitHub repo URL
-  → github.service        # repo info + tarball download/extract
-  → file-scanner          # only .js/.jsx/.ts/.tsx; junk dirs ignored
-  → babel.parser          # source → AST (Babel only parses)
-  → ast-analyzer          # AST → compact per-file JSON facts
-  → metadata.builder      # merge into compact ProjectMetadata
-  → ai.architect          # LLM gets ONLY compact JSON (never raw ASTs)
-  → architecture.validator# strict validation + normalization, stable IDs
-  → MongoDB Analysis doc  → REST + Socket.IO → frontend (Three.js)
+Backend/
+├── src/
+│   ├── config/            # env loading & defaults
+│   ├── infrastructure/    # database, github, llm, mailer, realtime
+│   ├── modules/
+│   │   ├── ai/            # architect service, chat, prompts, city builder
+│   │   ├── analysis/      # pipeline, controller, model, schema
+│   │   ├── auth/          # JWT, OTP, OAuth (Google/GitHub), users
+│   │   ├── parser/        # babel AST → per-file facts
+│   │   ├── projects/      # saved city projects (CRUD)
+│   │   ├── realtime/      # Socket.IO server
+│   │   └── repository/    # file scanner, repo URL utils
+│   └── shared/            # errors, middleware, types, utils
+├── tests/                 # 25+ Vitest suites
+└── docs/                  # API inventory, workflows, example payloads
 
-User asks a question
-  → chat.service          # component-ID-validated answer + graph path
-  → Socket.IO character:* # move/explain events; animation stays frontend-side
+frontend/
+├── src/
+│   ├── pages/             # Landing (+ landing UI kit)
+│   ├── three/             # CityScene, Buildings, Traffic, Weather, People…
+│   ├── components/        # AuthModal, CommandPalette, UI primitives
+│   ├── lib/               # auth, city, layout, windows helpers
+│   └── store/             # Zustand city state
+├── public/models/         # served 3D assets (GLB, HDRI, textures)
+└── Starlight-res/         # raw asset source of truth
 ```
 
 ---
 
-## 📡 API Summary
+## 🚀 Quickstart
 
-Full inventory with sample bodies: [`Backend/docs/API_ENDPOINTS.json`](Backend/docs/API_ENDPOINTS.json) · workflow guide: [`Backend/docs/API_WORKFLOW.md`](Backend/docs/API_WORKFLOW.md)
+**Prereqs:** Node ≥ 18, npm, a local MongoDB (`mongodb://127.0.0.1:27017`).
 
-### Main backend (`http://localhost:5000`) — 23 endpoints
-
-| Group | Endpoints |
-| :--- | :--- |
-| Health | `GET /health` |
-| Auth `/api/v1/auth/*` | register · verify-otp · resend-otp · login · forgot-password · reset-password · google/github OAuth start+callback |
-| Projects `/api/v1/projects/*` | CRUD + ownership (JWT required) |
-| Analysis `/api/v1/analysis/*` | start repo analysis, fetch architecture graph |
-| AI `/api/v1/ai/*` | architect (repo → Architecture JSON), chat (Q&A + pathfinding) |
-| Realtime | Socket.IO: `analysis:*`, `character:move`, `character:explain` |
-
-### Analyzer (`http://localhost:8787`)
-
-```bash
-curl -X POST http://localhost:8787/api/analyze \
-  -H "Content-Type: application/json" \
-  -d '{"repoUrl": "https://github.com/owner/repo"}'
-# → CityJSON { ...city, _meta: { source, stats } }
-# also accepts {"localPath": "C:/path/to/repo"} · max 2 concurrent jobs
-```
-
-### Auth microservice (`http://localhost:8788`)
-
-`POST /api/auth/register` · `login` · `verify-otp` · `resend-otp` · `GET /api/auth/me` · `GET /api/auth/oauth/:provider/start` (+ Google/GitHub callbacks). Users stored JSON-file backed in `data/users.json`; OTPs hashed (SHA-256), 10-min expiry.
-
----
-
-## 🖥 Frontend Highlights
-
-```
-frontend/src/
-├── three/           # CityScene, Buildings, Traffic, Connections,
-│                    # Infrastructure, CameraRig (react-three-fiber)
-├── components/      # AuthModal, CommandPalette (Ctrl+K), ui primitives & effects
-├── pages/Landing.tsx
-├── lib/             # city.ts, layout.ts, windows.ts, auth.ts helpers
-├── store/useCity.ts # Zustand store
-└── types.ts         # shared CityJSON types
-```
-
-- **Cyberpunk aesthetic**: glassmorphism HUD, neon glows, postprocessing effects
-- `_legacy_src/` contains the earlier Redux Toolkit implementation kept for reference (documented in [`frontend/documentation.md`](frontend/documentation.md))
-
-## 🧪 Backend Testing & Quality
+### 1. Backend
 
 ```bash
 cd Backend
-npm run typecheck    # strict TS check
-npm test             # vitest run (25+ suites, no network/db needed)
+cp .env.example .env      # edit values — everything has sane dev defaults
+npm install
+npm run dev               # → http://localhost:5000
+```
+
+Works out of the box with no external keys:
+- **No `LLM_API_KEY`** → deterministic heuristic architect mode
+- **No SMTP** → OTP codes are returned in the API response (`devCode`) and logged
+- **No `GITHUB_TOKEN`** → public repos still work (lower rate limit)
+
+### 2. Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev               # → http://localhost:5199
+```
+
+The Vite dev server proxies `/api` → `localhost:5000`, so there's zero CORS setup in dev.
+
+### 3. Try it
+
+Open `http://localhost:5199`, paste a GitHub repo URL (or use the bundled demo), and watch the city build itself.
+
+---
+
+## 🔧 Configuration
+
+All backend config lives in `Backend/.env` (see `.env.example` for the full annotated list):
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `PORT` | `5000` | API port |
+| `MONGO_URI` | `mongodb://127.0.0.1:27017/software-world` | MongoDB connection |
+| `JWT_SECRET` | dev placeholder | **change in production** |
+| `CORS_ORIGINS` | `*` | comma-separated allowed origins |
+| `GITHUB_TOKEN` | — | PAT for higher rate limits (no scopes needed for public repos) |
+| `LLM_BASE_URL` / `LLM_API_KEY` / `LLM_MODEL` | OpenAI / empty | any OpenAI-compatible endpoint; empty key = heuristic mode |
+| `MAX_REPO_FILES` / `MAX_FILE_SIZE_KB` | `1500` / `256` | analysis caps for large repos |
+| `GOOGLE_CLIENT_ID` / `GITHUB_CLIENT_*` | — | OAuth providers (optional) |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` | — | OTP email delivery (optional) |
+
+---
+
+## 📡 API overview
+
+Base URL `http://localhost:5000` · 23 endpoints · full inventory with bodies & expected statuses in
+[`Backend/docs/API_ENDPOINTS.json`](Backend/docs/API_ENDPOINTS.json) · workflows in
+[`Backend/docs/API_WORKFLOW.md`](Backend/docs/API_WORKFLOW.md).
+
+| Group | Endpoints | Highlights |
+|---|---|---|
+| Health | 1 | `GET /health` |
+| Auth | 13 | register → OTP verify → JWT · login · forgot/reset password · Google & GitHub OAuth · `GET /me` |
+| Projects | 4 | create / list / get / delete saved cities |
+| Analysis | 2 | `POST /api/v1/analysis` (repo URL → CityJSON, streamed progress via Socket.IO) |
+| AI | 3 | architect reasoning + architecture-aware chat |
+
+Auth: `Authorization: Bearer *** where required.
+
+---
+
+## 🧪 Scripts & tests
+
+```bash
+# Backend
+npm run dev          # tsx watch
 npm run build        # tsc → dist/
-```
+npm start            # node dist/server.js
+npm run typecheck    # tsc --noEmit
+npm test             # vitest run (25+ suites)
+npm run test:watch
 
-Covered areas: babel parsing, AST analyzer, fallback extractor, metadata/city builders, architecture schema validation, LLM client, prompts, chat service, graph pathfinding, auth (JWT/OTP/OAuth), mailer, middlewares (auth/error/validate/rate-limit), repo URL utils, file scanner.
-
-## 🐳 Docker
-
-A `Dockerfile` is provided for the backend:
-
-```bash
-cd Backend
-docker build -t software-world-backend .
-docker run --env-file .env -p 5000:5000 software-world-backend
+# Frontend
+npm run dev          # vite :5199
+npm run build        # tsc -b && vite build
+npm run lint         # eslint
 ```
 
 ---
 
-## 📁 Key Docs
+## 🗺 Roadmap
 
-| Doc | Contents |
-| :--- | :--- |
-| [`Backend/IMPLEMENTATION_PLAN.md`](Backend/IMPLEMENTATION_PLAN.md) | Architecture decisions & data contracts |
-| [`Backend/docs/API_ENDPOINTS.json`](Backend/docs/API_ENDPOINTS.json) | All 23 requests w/ bodies & statuses |
-| [`Backend/docs/API_EXAMPLES.md`](Backend/docs/API_EXAMPLES.md) | cURL walkthroughs |
-| [`Backend/docs/EXAMPLE_FULLSTACK_ARCHITECTURE.json`](Backend/docs/EXAMPLE_FULLSTACK_ARCHITECTURE.json) | Sample Architecture JSON output |
-| [`frontend/documentation.md`](frontend/documentation.md) | Legacy frontend architecture reference |
+- [ ] Language support beyond JS/TS (Python, Go)
+- [ ] Persist & share city snapshots
+- [ ] Multi-repo "metro area" view
+- [ ] CI pipeline (lint + typecheck + tests)
+- [ ] Production deployment guide (Dockerfile for Backend already included)
 
 ---
 
-## 🤝 Contributing
+## 🙏 Credits
 
-1. Fork & branch: `git checkout -b feat/my-feature`
-2. Commit with clear messages
-3. Run `npm run typecheck && npm test` in `Backend/` and `npm run lint` in `frontend/` before opening a PR
+- Fork of [gautamvaishnav1/projects](https://github.com/gautamvaishnav1/projects) — original CodeCity concept & backend
+- `demo/` contains [SamiurRahmanMukul/Hotel-Room-Booking-System](https://github.com/SamiurRahmanMukul/Hotel-Room-Booking-System) as the sample analysis target
+- 3D assets: three.js example models, Poly Haven HDRIs
 
 ## 📄 License
 
-MIT © CodeCity AI team
+MIT — see individual packages for details.
+
+---
+
+<div align="center">
+
+**Built at a hackathon, kept alive after it.** 🌃
+
+*If your codebase looks like a city, maybe you can finally fix the traffic.*
+
+</div>

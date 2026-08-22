@@ -8,15 +8,19 @@ import { SOLDIER, CHARACTERS } from "./assets";
 
 const OUTFITS = ["#ef4444", "#f59e0b", "#f472b6", "#22c55e", "#3b82f6", "#a78bfa", "#fb7185", "#fde047"];
 const UMBRELLAS = ["#ef4444", "#3b82f6", "#f59e0b", "#8b5cf6"];
+/** commuter uniform colors — match the stack they walk toward */
+const STACK_TINT: Record<string, string> = {
+  frontend: "#38bdf8", backend: "#fb923c", database: "#34d399", external: "#22d3ee",
+};
 
 /** Animated pedestrian: Soldier.glb Walk clip, ping-pongs along a sidewalk path. */
-function Walker({ a, b, seed }: { a: [number, number]; b: [number, number]; seed: number }) {
+function Walker({ a, b, seed, tint }: { a: [number, number]; b: [number, number]; seed: number; tint?: string }) {
   const ref = useRef<THREE.Group>(null!);
   const umb = useRef<THREE.Group>(null!);
   const { scene, animations } = useGLTF(SOLDIER);
   const cloned = useMemo(() => scene.clone(true), [scene]);
   // bright outfit: tint every material on this clone
-  const outfit = OUTFITS[Math.floor(seed * 97) % OUTFITS.length];
+  const outfit = tint ?? OUTFITS[Math.floor(seed * 97) % OUTFITS.length];
   useMemo(() => {
     cloned.traverse((o: any) => {
       if (o.isMesh && o.material) {
@@ -35,12 +39,17 @@ function Walker({ a, b, seed }: { a: [number, number]; b: [number, number]; seed
     if (clip && actions[clip]) { actions[clip].play(); (actions[clip] as any).timeScale = 1; }
   }, [actions, names]);
 
-  useFrame((_, dt) => {
+  useFrame((_, rawDt) => {
+    const dt = Math.min(rawDt, 0.05); // clamp tab-switch/GC spikes → no teleporting actors
     t.current += dt * speed;
-    const u = (Math.sin(t.current * 0.5) + 1) / 2;
+    const wave = Math.sin(t.current * 0.5);
+    const u = (wave + 1) / 2;
+    const dir = Math.cos(t.current * 0.5) >= 0 ? 1 : -1;
     const x = a[0] + (b[0] - a[0]) * u, z = a[1] + (b[1] - a[1]) * u;
     ref.current.position.set(x, 0.02, z);
-    ref.current.rotation.y = Math.atan2(b[0] - a[0], b[1] - a[1]) * (Math.cos(t.current * 0.5) > 0 ? 1 : -1) + Math.PI;
+    const dx = b[0] - a[0], dz = b[1] - a[1];
+    // face travel direction: flip when the ping-pong reverses
+    ref.current.rotation.y = Math.atan2(dx * dir, dz * dir);
     if (umb.current) umb.current.rotation.z = ENV.wind * 0.35;
   });
 
@@ -113,6 +122,15 @@ export function People({ L }: { L: CityLayout }) {
     L.districts.forEach((d) => { out.push([d.center[0] + 13, d.center[1] + 8], [d.center[0] - 12, d.center[1] - 9]); });
     return out;
   }, [L]);
+  const avenueWalkers = useMemo(
+    () => [
+      { a: [-45.5, -26], b: [-38.5, 49] },
+      { a: [38.5, -26], b: [45.5, 41] },
+      { a: [-20, -14], b: [-64, -14] },   // trunk west of river
+      { a: [20, -14], b: [64, -14] },     // trunk east of river
+    ],
+    [],
+  );
 
   return (
     <group>
@@ -120,9 +138,12 @@ export function People({ L }: { L: CityLayout }) {
         p.length === 3 ? (
           <BridgeWalker key={`bw${i}`} a={p[0] as any} b={p[1] as any} y={(p as any)[2]} seed={i * 0.37 + 0.13} />
         ) : (
-          <Walker key={i} a={p[0] as any} b={p[1] as any} seed={i * 0.37 + 0.13} />
+          <Walker key={i} a={p[0] as any} b={p[1] as any} seed={i * 0.37 + 0.13}
+            tint={(L.districts[i % L.districts.length]?.stack && STACK_TINT[L.districts[i % L.districts.length].stack]) || undefined} />
         ),
       )}
+      {/* avenue commuters — orange (backend) & sky (frontend) uniforms */}
+      {avenueWalkers.map((w, i) => <Walker key={`av${i}`} a={w.a as any} b={w.b as any} seed={i * 0.53 + 0.07} tint={(i % 2 ? STACK_TINT.backend : STACK_TINT.frontend) as string} />)}
       {spots.map((s, i) => <Bystander key={`s${i}`} pos={s} seed={i * 0.61 + 0.29} />)}
     </group>
   );
@@ -140,11 +161,12 @@ function BridgeWalker({ a, b, y, seed }: { a: [number, number]; b: [number, numb
     const clip = names.find((n) => /walk/i.test(n));
     if (clip && actions[clip]) actions[clip].play();
   }, [actions, names]);
-  useFrame((_, dt) => {
+  useFrame((_, rawDt) => {
+    const dt = Math.min(rawDt, 0.05); // clamp tab-switch/GC spikes → no teleporting actors
     t.current += dt * speed;
     const u = (Math.sin(t.current * 0.5) + 1) / 2;
     ref.current.position.set(a[0] + (b[0] - a[0]) * u, y, a[1] + (b[1] - a[1]) * u);
-    ref.current.rotation.y = Math.atan2(b[0] - a[0], b[1] - a[1]) * (Math.cos(t.current * 0.5) > 0 ? 1 : -1) + Math.PI;
+    ref.current.rotation.y = Math.atan2(b[0] - a[0], b[1] - a[1]);
   });
   return (
     <group ref={ref} position={[a[0], y, a[1]]} scale={1.25}>

@@ -289,6 +289,94 @@ const TT_LINES: Array<[string, string]> = [
   ["✓ city ready in 8.2s — press LAUNCH", ""],
 ];
 
+export function AtlasPlate() {
+  return (
+    <figure>
+      <div className="border-[1.5px] border-black-ink p-1.5">
+        <div className="relative bg-paper-deep p-3 md:p-4">
+          <svg viewBox="0 0 320 208" role="img" aria-label="Full-stack MERN plate" className="block w-full">
+            {/* ── 01 CLIENT — REACT ───────────────────────────── */}
+            <rect x="10" y="6" width="300" height="36" fill="rgba(20,20,20,.04)" stroke="#141414" strokeWidth="1" />
+            <rect x="10" y="6" width="4" height="36" fill="#141414" />
+            <text x="22" y="19" fontSize="7" letterSpacing="1.2" fill="#141414" fontWeight="700">01 · CLIENT</text>
+            <text x="228" y="19" fontSize="6" letterSpacing="0.8" fill="#141414" opacity="0.55" textAnchor="end">REACT</text>
+            {["<App>", "<Router>", "<HUD>"].map((t, i) => (
+              <g key={t}>
+                <rect x={22 + i * 72} y={24} width={62} height={12} fill="#f2efe3" stroke="#141414" strokeWidth="0.8" />
+                <text x={53 + i * 72} y={32.5} fontSize="5.5" textAnchor="middle" fill="#141414" fontFamily="JetBrains Mono, monospace">{t}</text>
+              </g>
+            ))}
+
+            {/* ── 02 API — EXPRESS ───────────────────────────── */}
+            <rect x="10" y="56" width="300" height="36" fill="rgba(20,20,20,.04)" stroke="#141414" strokeWidth="1" />
+            <rect x="10" y="56" width="4" height="36" fill="#141414" />
+            <text x="22" y="69" fontSize="7" letterSpacing="1.2" fill="#141414" fontWeight="700">02 · API</text>
+            <text x="228" y="69" fontSize="6" letterSpacing="0.8" fill="#141414" opacity="0.55" textAnchor="end">EXPRESS</text>
+            {["route", "guard", "controller"].map((t, i) => (
+              <g key={t}>
+                <rect x={22 + i * 74} y={74} width={62} height={12} fill="#f2efe3" stroke="#141414" strokeWidth="0.8" />
+                <text x={53 + i * 74} y={82.5} fontSize="5.5" textAnchor="middle" fill="#141414" fontFamily="JetBrains Mono, monospace">{t}</text>
+                {i < 2 && <path d={`M ${85 + i * 74} 80 h 9 m -3 -2 l 3 2 l -3 2`} fill="none" stroke="#141414" strokeWidth="0.8" />}
+              </g>
+            ))}
+
+            {/* ── 03 RUNTIME — NODE ──────────────────────────── */}
+            <rect x="10" y="106" width="300" height="36" fill="rgba(20,20,20,.04)" stroke="#141414" strokeWidth="1" />
+            <rect x="10" y="106" width="4" height="36" fill="#141414" />
+            <text x="22" y="119" fontSize="7" letterSpacing="1.2" fill="#141414" fontWeight="700">03 · RUNTIME</text>
+            <text x="228" y="119" fontSize="6" letterSpacing="0.8" fill="#141414" opacity="0.55" textAnchor="end">NODE</text>
+            <circle cx="42" cy="132" r="9" fill="none" stroke="#141414" strokeWidth="1" />
+            <path d="M 42 123 A 9 9 0 0 1 51 132" fill="none" stroke="#e30613" strokeWidth="1.6" />
+            <text x="58" y="135" fontSize="5.5" fill="#141414" opacity="0.75" fontFamily="JetBrains Mono, monospace">event loop ∞</text>
+            {["libuv pool", "workers"].map((t, i) => (
+              <g key={t}>
+                <rect x={124 + i * 62} y={126} width={56} height={12} fill="#f2efe3" stroke="#141414" strokeWidth="0.8" />
+                <text x={152 + i * 62} y={134.5} fontSize="5.5" textAnchor="middle" fill="#141414" fontFamily="JetBrains Mono, monospace">{t}</text>
+              </g>
+            ))}
+
+            {/* ── 04 DATA — MONGODB ──────────────────────────── */}
+            <rect x="10" y="156" width="300" height="34" fill="rgba(20,20,20,.08)" stroke="#141414" strokeWidth="1" />
+            <rect x="10" y="156" width="4" height="34" fill="#e30613" />
+            <text x="22" y="169" fontSize="7" letterSpacing="1.2" fill="#141414" fontWeight="700">04 · DATA</text>
+            <text x="228" y="169" fontSize="6" letterSpacing="0.8" fill="#141414" opacity="0.55" textAnchor="end">MONGODB</text>
+            {["{ users }", "{ carts }", "{ sessions }"].map((t, i) => (
+              <g key={t}>
+                <rect x={22 + i * 74} y={173} width={62} height={11} fill="#f2efe3" stroke="#141414" strokeWidth="0.8" />
+                <text x={53 + i * 74} y={181} fontSize="5.5" textAnchor="middle" fill="#141414" fontFamily="JetBrains Mono, monospace">{t}</text>
+              </g>
+            ))}
+
+            {/* channel rails — request descends in signal red, response climbs in ink */}
+            <line x1="262" y1="46" x2="262" y2="190" stroke="#e30613" strokeWidth="0.7" strokeDasharray="3 3" opacity="0.65" />
+            <line x1="280" y1="46" x2="280" y2="190" stroke="#141414" strokeWidth="0.7" strokeDasharray="3 3" opacity="0.45" />
+            <text x="262" y="53" fontSize="5" letterSpacing="0.6" fill="#e30613" fontWeight="700" textAnchor="middle">REQ ▾</text>
+            <text x="280" y="53" fontSize="5" letterSpacing="0.6" fill="#141414" opacity="0.6" textAnchor="middle">▴ RES</text>
+            <path id="mern-req" d="M262 46 V 190" fill="none" />
+            <path id="mern-res" d="M280 190 V 46" fill="none" />
+            <circle r="2.4" fill="#e30613">
+              <animateMotion dur="3.2s" repeatCount="indefinite"><mpath href="#mern-req" /></animateMotion>
+            </circle>
+            <circle r="2" fill="#141414">
+              <animateMotion dur="3.2s" begin="-1.6s" repeatCount="indefinite"><mpath href="#mern-res" /></animateMotion>
+            </circle>
+
+            {/* bottom ruler — where each layer listens */}
+            <line x1="0" y1="202" x2="320" y2="202" stroke="#141414" strokeWidth="0.8" />
+            {[[16, ":5173"], [140, ":5000"], [290, ":27017"]].map(([x, t]) => (
+              <g key={t}>
+                <line x1={x} y1="202" x2={x} y2="206" stroke="#141414" strokeWidth="0.8" />
+                <text x={x} y="200.5" fontSize="5" letterSpacing="0.8" fill="#141414" opacity="0.6">{t}</text>
+              </g>
+            ))}
+          </svg>
+        </div>
+      </div>
+      <figcaption className="caption-caps mt-3 text-black-ink/45">FIG. 05 — FULL-STACK MERN PLATE · ONE REQUEST, END TO END</figcaption>
+    </figure>
+  );
+}
+
 export function Teletype() {
   const [ref, seen] = useInView<HTMLDivElement>(0.3);
   const [n, setN] = useState(0);

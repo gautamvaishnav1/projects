@@ -79,13 +79,17 @@ export const HDRI_NIGHT = "/models/hdri/dikhololo_night_1k.hdr";
 /** deterministic pick so a building always gets the same model */
 export const pick = <T,>(arr: T[], seed: number): T => arr[Math.abs(Math.floor(seed)) % arr.length];
 
-/** preload the hot set once — buildings/vehicles/people/trees; HDRI loads via Environment */
+/**
+ * Preload only the FIRST-PAINT set: the sample city uses box buildings +
+ * skyscrapers/tanks/chimneys, login-flow vehicles, Soldier + characters.
+ * Everything else streams on demand as the camera finds it — cuts initial
+ * GLB fetches by ~70% and gets the city on screen much faster.
+ */
 export function preloadAll() {
-  [
-    ...COMMERCIAL, ...SUBURBAN, ...INDUSTRIAL, ...CHIMNEYS, ...TANKS,
-    ...VEHICLE_FAST, ...VEHICLE_MED, ...VEHICLE_SLOW, VEHICLE_HERO, ...VEHICLE_EMERGENCY,
-    SOLDIER, XBOT, ...CHARACTERS,
-    BRIDGE, BARRIER, FENCE, CONE, SIGN_WARNING, STREET_LIGHT, POWER_POLE,
-    ...Object.values(PROP),
+  [...SKYSCRAPERS, ...CHIMNEYS, ...TANKS,
+   ...VEHICLE_FAST.slice(0, 2), ...VEHICLE_MED.slice(0, 3), ...VEHICLE_SLOW.slice(0, 2), VEHICLE_HERO,
+   SOLDIER, ...CHARACTERS.slice(0, 6),
+   BRIDGE, BARRIER, CONE,
+   PROP.bench, PROP.hydrant, PROP.trashBin, PROP.mailbox, PROP.fountain, PROP.planter, PROP.billboard,
   ].forEach((u) => useGLTF.preload(u));
 }

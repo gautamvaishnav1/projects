@@ -5,15 +5,20 @@ import * as THREE from "three";
 import { useCity } from "../store/useCity";
 import { ENV, PRESETS, TIME, WIND } from "./env";
 import type { Weather } from "./env";
-import { SAMPLE_CITY } from "../data/sampleCity";
 import { setRainLevel } from "./audio";
 
 const NIGHT = new THREE.Color("#060a18"), DAY = new THREE.Color("#8ecbe8"), DUSK = new THREE.Color("#f0855a"), GRAY = new THREE.Color("#5a6472");
+/** weather = the repo's actual health, from the LIVE city in the store */
 const healthWeather = (s: any): Weather => {
   if (s.failing) return "storm";
-  if (s.latency === "slow") return "rain";
-  const warns = SAMPLE_CITY.districts.flatMap((d) => d.buildings).filter((b) => b.health !== "ok").length;
-  return s.latency === "medium" || warns > 0 ? "drizzle" : "clear";
+  const city = s.city;
+  const bad = city.districts
+    .flatMap((d: any) => d.buildings)
+    .filter((b: any) => b.health !== "ok");
+  if (bad.some((b: any) => b.health === "error")) return "rain";
+  if (s.apiLatencyMs != null && s.apiLatencyMs > 900) return "storm"; // real slow API
+  if (bad.length > 0 || (s.apiLatencyMs != null && s.apiLatencyMs > 250)) return "drizzle";
+  return "clear";
 };
 
 export function Atmosphere() {
@@ -24,7 +29,8 @@ export function Atmosphere() {
   const shadowMat = useMemo(() => new THREE.MeshBasicMaterial({ color: "#000", transparent: true, opacity: 0.15, depthWrite: false }), []);
   const clouds = useMemo(() => Array.from({ length: 9 }, () => ({ x: (Math.random() - .5) * 260, y: 53 + Math.random() * 5, z: (Math.random() - .5) * 200, s: 9 + Math.random() * 9, v: 1.5 + Math.random() * 2 })), []);
 
-  useFrame((_, dt) => {
+  useFrame((_, rawDt) => {
+    const dt = Math.min(rawDt, 0.05); // clamp tab-switch/GC spikes → no teleporting actors
     const st = useCity.getState();
     TIME.value += dt; WIND.value = ENV.wind;
     if (st.autoCycle) { acc.current += dt; if (acc.current > 0.25) { st.patch({ time: (st.time + acc.current * 0.5) % 24 }); acc.current = 0; } }
@@ -74,7 +80,11 @@ export function Atmosphere() {
 
 function Cloud({ x, y, z, s, v, mat, shadowMat }: any) {
   const ref = useRef<THREE.Group>(null!);
-  useFrame((_, dt) => { ref.current.position.x += v * dt * (0.5 + ENV.wind * 2.5); if (ref.current.position.x > 170) ref.current.position.x = -170; });
+  useFrame((_, rawDt) => {
+    const dt = Math.min(rawDt, 0.05); // clamp tab-switch/GC spikes → no teleporting actors
+    ref.current.position.x += v * dt * (0.5 + ENV.wind * 2.5);
+    if (ref.current.position.x > 170) ref.current.position.x = -170;
+  });
   return (
     <group ref={ref} position={[x, y, z]}>
       {[0, 1, 2, 3].map((i) => (

@@ -14,6 +14,7 @@ import { Precipitation } from "./Precipitation";
 import { Lightning } from "./Lightning";
 import { Wet } from "./Wet";
 import { CameraRig } from "./CameraRig";
+import { FloatingNotifs } from "../ui/HUD";
 import { Connections } from "./Connections";
 import { HDRI_DAY, HDRI_NIGHT, preloadAll } from "./assets";
 
@@ -50,6 +51,7 @@ export function CityScene() {
       {L.buildings.map((b) => <Building key={b.id} b={b} />)}
       <Connections layout={L} edges={cityEdges} />
       <Traffic L={L} />
+      <FloatingNotifs />
       <People L={L} />
       <Precipitation />
       <Lightning target={[L.byId.get("be-payctrl")?.pos[0] ?? 44, L.byId.get("be-payctrl")?.pos[2] ?? -23]} />

@@ -625,3 +625,10 @@ body {
     animation: none !important;
   }
 }
+
+/* floating chip glass (hover labels above buildings) */
+.glass {
+  background: rgba(10, 14, 26, 0.72);
+  backdrop-filter: blur(6px);
+  color: #e2e8f0;
+}

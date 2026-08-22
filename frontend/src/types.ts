@@ -40,7 +40,7 @@ export interface EdgeNode {
 }
 
 export interface CityJSON {
-  project: { name: string; stack: string };
+  project: { id?: string; name: string; stack: string };
   districts: DistrictNode[];
   edges: EdgeNode[];
   flows: Record<string, string[]>;

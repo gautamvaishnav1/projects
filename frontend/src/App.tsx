@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from "react";
 import Landing from "./pages/Landing";
-import { CityScene } from "./three/CityScene";
+const CityScene = lazy(() => import("./three/CityScene").then((m) => ({ default: m.CityScene })));
 import { HUD } from "./ui/HUD";
 import { CommandPalette, type PaletteItem } from "./components/ui/CommandPalette";
 import { AuthModal } from "./components/AuthModal";
@@ -35,6 +35,16 @@ export default function App() {
     location.hash = "#app";
     setView("app");
   }, []);
+
+  // warm the 3D chunk on intent (hover/focus) and during idle — city opens instantly
+  const preloadCity = useCallback(() => {
+    void import("./three/CityScene");
+  }, []);
+  useEffect(() => {
+    const idle = requestIdleCallback ?? ((cb: () => void) => setTimeout(cb, 1500));
+    const id = idle(() => preloadCity());
+    return () => cancelIdleCallback?.(id);
+  }, [preloadCity]);
 
   // finish OAuth redirects: server bounces back with #oauth=<token>
   useEffect(() => {
@@ -107,7 +117,9 @@ export default function App() {
     <>
       {view === "app" ? (
         <div className="relative h-screen w-screen overflow-hidden bg-bg0">
-          <CityScene />
+          <Suspense fallback={<div className="grid h-full place-items-center font-mono text-sm text-white/50">🏗 building the city…</div>}>
+            <CityScene />
+          </Suspense>
           <HUD />
           <button
             onClick={home}
@@ -117,7 +129,7 @@ export default function App() {
           </button>
         </div>
       ) : (
-        <Landing onLaunch={launch} />
+        <Landing onLaunch={launch} onLaunchIntent={preloadCity} />
       )}
       <Noise />
       {view === "app" && <CursorGlow />}

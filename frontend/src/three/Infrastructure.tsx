@@ -6,7 +6,6 @@ import type { CityLayout } from "../lib/layout";
 import { useCity } from "../store/useCity";
 import { ENV } from "./env";
 import { grassTexture, asphaltTexture, groundTextures } from "./textures";
-import { SAMPLE_CITY } from "../data/sampleCity";
 import { TREES, ROCKS, BUSHES_PLANTS, PROP, BARRIER, FENCE, CONE, pick } from "./assets";
 
 const seg = (a: [number, number], b: [number, number]) => { const dx = b[0] - a[0], dz = b[1] - a[1]; return { len: Math.hypot(dx, dz), rot: -Math.atan2(dz, dx), mid: [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] }; };
@@ -46,13 +45,37 @@ export function Roads({ L }: { L: CityLayout }) {
         <meshStandardMaterial color="#e8d9a0" emissive="#f59e0b" emissiveIntensity={ENV.night * 0.8} transparent opacity={0.85} />
         {dashes.map((d, i) => <Instance key={i} position={[d.p[0], 0.105, d.p[1]]} rotation={[0, d.rot, 0]} />)}
       </Instances>
+      {/* junction corner patches — hide the notch where avenue meets trunk */}
+      {[[-42, -8], [42, -8]].map(([jx, jz], i) => (
+        <mesh key={`j${i}`} rotation-x={-Math.PI / 2} position={[jx, 0.085, jz]} receiveShadow>
+          <planeGeometry args={[5, 5]} />
+          <meshStandardMaterial map={st.clone()} color="#2b3038" roughness={0.95} />
+        </mesh>
+      ))}
       {L.bridges.map((z, i) => (
         <group key={i} position={[0, 0, z]}>
-          <mesh position={[0, 1.3, 0]} castShadow><boxGeometry args={[12, 0.4, 6]} /><meshStandardMaterial map={hw} /></mesh>
-          <mesh position={[-4, 0.6, 0]}><cylinderGeometry args={[0.4, 0.4, 1.4, 8]} /><meshStandardMaterial color="#334155" /></mesh>
-          <mesh position={[4, 0.6, 0]}><cylinderGeometry args={[0.4, 0.4, 1.4, 8]} /><meshStandardMaterial color="#334155" /></mesh>
-          <mesh position={[0, 1.7, 2.9]}><boxGeometry args={[12, 0.5, 0.15]} /><meshStandardMaterial color="#22d3ee" emissive="#22d3ee" emissiveIntensity={1.4} /></mesh>
-          <mesh position={[0, 1.7, -2.9]}><boxGeometry args={[12, 0.5, 0.15]} /><meshStandardMaterial color="#22d3ee" emissive="#22d3ee" emissiveIntensity={1.4} /></mesh>
+          {/* approach ramps: road-y → deck-y so cars/peds transition smoothly */}
+          <mesh position={[-7.75, 0.55, 0]} rotation-z={-0.165} castShadow>
+            <boxGeometry args={[3.9, 0.25, 6.4]} />
+            <meshStandardMaterial map={hw} />
+          </mesh>
+          <mesh position={[7.75, 0.55, 0]} rotation-z={0.165} castShadow>
+            <boxGeometry args={[3.9, 0.25, 6.4]} />
+            <meshStandardMaterial map={hw} />
+          </mesh>
+          {/* main deck — TOP surface exactly at y=1.5 where lanes ride */}
+          <mesh position={[0, 1.3, 0]} castShadow receiveShadow>
+            <boxGeometry args={[12, 0.4, 6.4]} />
+            <meshStandardMaterial map={hw} />
+          </mesh>
+          {/* piers */}
+          <mesh position={[-3.2, 0.45, 0]}><cylinderGeometry args={[0.42, 0.5, 1.1, 10]} /><meshStandardMaterial color="#334155" /></mesh>
+          <mesh position={[3.2, 0.45, 0]}><cylinderGeometry args={[0.42, 0.5, 1.1, 10]} /><meshStandardMaterial color="#334155" /></mesh>
+          {/* railings + nav lights */}
+          <mesh position={[0, 1.72, 3.05]}><boxGeometry args={[12.4, 0.45, 0.14]} /><meshStandardMaterial color="#22d3ee" emissive="#22d3ee" emissiveIntensity={1.4} /></mesh>
+          <mesh position={[0, 1.72, -3.05]}><boxGeometry args={[12.4, 0.45, 0.14]} /><meshStandardMaterial color="#22d3ee" emissive="#22d3ee" emissiveIntensity={1.4} /></mesh>
+          <mesh position={[-5.6, 2.6, 0]}><sphereGeometry args={[0.16, 8, 8]} /><meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={2} /></mesh>
+          <mesh position={[5.6, 2.6, 0]}><sphereGeometry args={[0.16, 8, 8]} /><meshStandardMaterial color="#22c55e" emissive="#22c55e" emissiveIntensity={2} /></mesh>
         </group>))}
     </group>
   );
@@ -170,11 +193,13 @@ export function Decor({ L }: { L: CityLayout }) {
 }
 
 export function Links({ L }: { L: CityLayout }) {
-  const on = useCity((s) => s.links); if (!on) return null;
+  const on = useCity((s) => s.links);
+  const edges = useCity((s) => s.city.edges); // LIVE edges — updates when a repo loads
+  if (!on) return null;
   const COLORS = { http: "#22d3ee", query: "#4ade80", import: "#94a3b8" };
   return (
     <group>
-      {SAMPLE_CITY.edges.map((e, i) => {
+      {(edges ?? []).map((e, i) => {
         const a = L.byId.get(e.from), b = L.byId.get(e.to); if (!a || !b) return null;
         const A = new THREE.Vector3(a.pos[0], 2, a.pos[2]), B = new THREE.Vector3(b.pos[0], 2, b.pos[2]);
         const mid = A.clone().lerp(B, 0.5); mid.y = 6 + A.distanceTo(B) * 0.18;

@@ -154,9 +154,12 @@ export function oauthStartUrl(provider: "google" | "github") {
   return `${AUTH_URL}/${provider}`;
 }
 
-/** Authorized fetch helper for other frontend modules (analysis flow etc.). */
+/** Authorized fetch helper for other frontend modules (analysis flow etc.).
+ *  Also records the real round-trip latency into the city store — the
+ *  telemetry card and traffic speed read from this, no more fake numbers. */
 export function apiFetch(path: string, init: RequestInit = {}): Promise<Response> {
   const token = useAuth.getState().token;
+  const started = performance.now();
   return fetch(`${API_BASE}${path}`, {
     ...init,
     headers: {
@@ -164,5 +167,11 @@ export function apiFetch(path: string, init: RequestInit = {}): Promise<Response
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...init.headers,
     },
+  }).then((res) => {
+    // dynamic import avoids a store↔auth module cycle
+    void import("../store/useCity").then(({ useCity }) =>
+      useCity.getState().recordLatency(performance.now() - started),
+    );
+    return res;
   });
 }

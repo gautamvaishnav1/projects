@@ -18,6 +18,11 @@ void main(){
  float a=0.95*smoothstep(0.0,0.06,vUv.x)*smoothstep(1.0,0.94,vUv.x);
  gl_FragColor=vec4(col,a); }`;
 
+/**
+ * The river. Writes depth so the bridge deck ALWAYS occludes it correctly
+ * (the old depthWrite=false let the water smear over the deck from low angles,
+ * which read as "river going under the bridge wrong").
+ */
 export function River() {
   const mat = useRef<THREE.ShaderMaterial>(null!);
   useFrame(({ clock }) => (mat.current.uniforms.uTime.value = clock.elapsedTime));
@@ -27,7 +32,7 @@ export function River() {
       <shaderMaterial
         ref={mat}
         transparent
-        depthWrite={false}
+        depthWrite
         uniforms={{ uTime: { value: 0 } }}
         vertexShader={VERT}
         fragmentShader={FRAG}

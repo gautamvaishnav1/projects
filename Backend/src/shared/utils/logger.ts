@@ -14,9 +14,15 @@ function serialize(meta?: unknown): string {
   }
 }
 
+type LogListener = (line: string) => void;
+const listeners = new Set<LogListener>();
+
 function write(level: Level, message: string, meta?: unknown): void {
   if (order[level] < order[minLevel]) return;
   const line = `${new Date().toISOString()} [${level.toUpperCase()}] ${message}${serialize(meta)}`;
+  for (const fn of listeners) {
+    try { fn(line); } catch { /* a dead subscriber must never break logging */ }
+  }
   // eslint-disable-next-line no-console
   if (level === "error") console.error(line);
   // eslint-disable-next-line no-console
@@ -26,6 +32,11 @@ function write(level: Level, message: string, meta?: unknown): void {
 }
 
 export const logger = {
+  /** subscribe to every formatted log line (SSE tail); returns unsubscribe */
+  subscribe(fn: LogListener): () => void {
+    listeners.add(fn);
+    return () => listeners.delete(fn);
+  },
   debug: (msg: string, meta?: unknown) => write("debug", msg, meta),
   info: (msg: string, meta?: unknown) => write("info", msg, meta),
   warn: (msg: string, meta?: unknown) => write("warn", msg, meta),

@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent, type MouseEvent } from "react";
-import { Reveal, FolioBar, Teletype, MiniCity, TickerBand, useInView, useCountUp } from "./landing/ui";
+import { Reveal, FolioBar, Teletype, MiniCity, TickerBand, AtlasPlate, useInView, useCountUp } from "./landing/ui";
 
 /* ═══ INTERNATIONALES ARCHIV — Swiss press system ══════════════════
    1958 Müller-Brockmann poster logic on a modern web grid.
@@ -13,7 +13,8 @@ const BRAND = {
 
 const INDEX = [
   { n: "01", t: "SYSTEM", meta: "12 COLUMNS", id: "raster" },
-  { n: "02", t: "LIVE DATA", meta: "DEPARTURES BOARD", id: "zeit" },
+  { n: "02", t: "ATLAS", meta: "FULL-STACK MERN PLATE", id: "atlas" },
+  { n: "03", t: "LIVE DATA", meta: "DEPARTURES BOARD", id: "zeit" },
 ];
 
 const SPECS: Array<[string, string]> = [
@@ -37,7 +38,7 @@ function RuleHeavy() {
 
 /* ── hero — asymmetric 8 / 4 split ───────────────────────────────── */
 
-function Hero({ onLaunch }: { onLaunch: () => void }) {
+function Hero({ onLaunch, onLaunchIntent }: { onLaunch: () => void; onLaunchIntent?: () => void }) {
   return (
     <section id="top" className="sheet relative scroll-mt-8">
       <div className="relative grid grid-cols-12 gap-x-6 gap-y-12 pb-16 pt-10 md:pt-14">
@@ -72,7 +73,7 @@ function Hero({ onLaunch }: { onLaunch: () => void }) {
           </Reveal>
           <Reveal delay={800}>
             <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
-              <button type="button" onClick={onLaunch} className="btn-print solid">
+              <button type="button" onClick={onLaunch} onMouseEnter={onLaunchIntent} onFocus={onLaunchIntent} className="btn-print solid">
                 Launch the app ▸
               </button>
               <a href="#terminals" onClick={(e) => goTo(e, "terminals")} className="btn-print ghost">
@@ -208,6 +209,44 @@ function RasterSection() {
   );
 }
 
+/* ── 02 ATLAS — world distribution plate ─────────────────────────── */
+
+function AtlasSection() {
+  return (
+    <section id="atlas" className="sheet scroll-mt-8 py-20 md:py-28">
+      <SecHead n="02" t="ATLAS" meta="ONE REQUEST, END TO END" />
+      <div className="grid grid-cols-12 gap-x-6 gap-y-12">
+        <div className="col-span-12 lg:col-span-8">
+          <Reveal>
+            <AtlasPlate />
+          </Reveal>
+          <Reveal delay={150}>
+            <p className="mt-8 max-w-[54ch] text-[15px] leading-6 text-black-ink/80">
+              The whole stack on one plate: React renders, Express routes, Node executes,
+              MongoDB persists. Follow a single request as it descends the layers and its
+              response climbs back — no layer hidden, nothing between you and the metal.
+            </p>
+          </Reveal>
+        </div>
+
+        <aside className="col-span-12 flex flex-col gap-8 lg:col-span-3 lg:col-start-10 lg:border-l lg:border-black-ink/25 lg:pl-6">
+          {[
+            ["LAYERS", "4"],
+            ["HOPS PER REQUEST", "8"],
+            ["ROUND TRIP", "3.2 S"],
+          ].map(([k, v]) => (
+            <div key={k}>
+              <p className="caption-caps font-bold">{k}</p>
+              <p className="mt-2 text-3xl font-black tabular-nums tracking-tight">{v}</p>
+            </div>
+          ))}
+          <p className="caption-caps mt-auto text-black-ink/45">FIG. 06 — THE STACK, PRINTED FLAT</p>
+        </aside>
+      </div>
+    </section>
+  );
+}
+
 /* ── quote band — inversion moment ───────────────────────────────── */
 
 function QuoteBand() {
@@ -335,7 +374,7 @@ function Stat({ n, v, suffix }: { n: string; v: number; suffix?: string }) {
 
 /* ── launch panel — form follows function ────────────────────────── */
 
-function LaunchPanel({ onLaunch }: { onLaunch: () => void }) {
+function LaunchPanel({ onLaunch, onLaunchIntent }: { onLaunch: () => void; onLaunchIntent?: () => void }) {
   const [repo, setRepo] = useState("");
 
   const submit = (e: FormEvent) => {
@@ -384,7 +423,7 @@ function LaunchPanel({ onLaunch }: { onLaunch: () => void }) {
         </div>
 
         <div className="col-span-12 flex flex-col items-start gap-6 lg:col-span-4 lg:col-start-9 lg:border-l lg:border-black-ink/25 lg:pl-6">
-          <button type="button" onClick={onLaunch} className="btn-print solid w-full justify-center py-5 text-sm">
+          <button type="button" onClick={onLaunch} onMouseEnter={onLaunchIntent} onFocus={onLaunchIntent} className="btn-print solid w-full justify-center py-5 text-sm">
             Launch ▸ open the app
           </button>
           <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="btn-print ghost w-full justify-center">
@@ -416,7 +455,7 @@ function Colophon() {
 
 /* ── page ────────────────────────────────────────────────────────── */
 
-export default function Landing({ onLaunch }: { onLaunch: () => void }) {
+export default function Landing({ onLaunch, onLaunchIntent }: { onLaunch: () => void; onLaunchIntent?: () => void }) {
   return (
     <div className="swiss-root relative min-h-screen overflow-x-clip">
       {/* paper artifacts */}
@@ -430,15 +469,17 @@ export default function Landing({ onLaunch }: { onLaunch: () => void }) {
       <FolioBar mark={BRAND.headerLeft} onLaunch={onLaunch} />
 
       <main>
-        <Hero onLaunch={onLaunch} />
+        <Hero onLaunch={onLaunch} onLaunchIntent={onLaunchIntent} />
         <RuleHeavy />
         <RasterSection />
+        <RuleHeavy />
+        <AtlasSection />
         <TickerBand phrase="EVERY FILE A BUILDING" />
         <QuoteBand />
         <RuleHeavy />
         <ZeitSection />
         <TickerBand phrase="CODE BECOMES CITY" />
-        <LaunchPanel onLaunch={onLaunch} />
+        <LaunchPanel onLaunch={onLaunch} onLaunchIntent={onLaunchIntent} />
       </main>
 
       <Colophon />

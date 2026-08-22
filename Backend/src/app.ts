@@ -10,6 +10,8 @@ import authRoutes from "./modules/auth/auth.routes";
 import projectRoutes from "./modules/projects/project.routes";
 import analysisRoutes from "./modules/analysis/analysis.routes";
 import chatRoutes from "./modules/ai/ai.routes";
+import logRoutes from "./modules/logs/logs.routes";
+import insightRoutes from "./modules/insights/insights.routes";
 
 const app = express();
 
@@ -63,6 +65,8 @@ app.get("/health", (_req, res) => {
 
 /* ------------------------------- routes ------------------------------- */
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1", logRoutes); // SSE log tail — must precede analysis routes (they auth-wall /api/v1)
+app.use("/api/v1", insightRoutes); // AI insights
 app.use("/api/v1/projects", projectRoutes); // create/list/get/delete
 app.use("/api/v1", analysisRoutes); // analyze / analyses / architecture
 app.use("/api/v1", chatRoutes); // chat
