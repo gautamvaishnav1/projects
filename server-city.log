@@ -22,3 +22,16 @@
 2026-08-22T18:57:37.145Z [INFO] Analysis completed {"analysisId":"6a89f11e9b04e7b54b11b368","repo":"gautamvaishnav1/firstReactProject","engine":"heuristic","components":4,"connections":2,"durationMs":2251}
 2026-08-22T18:57:37.898Z [HTTP] GET /api/v1/analyses/6a89f11e9b04e7b54b11b368/status -> 200 (10ms)
 2026-08-22T18:57:37.914Z [HTTP] GET /api/v1/projects/6a89c763fba6f11f175c0fbc/architecture -> 200 (11ms)
+2026-08-22T22:08:45.365Z [HTTP] GET / -> 404 (146ms)
+2026-08-22T22:08:55.947Z [HTTP] GET /api/v1/featured-rooms-list -> 401 (61ms)
+2026-08-22T22:09:17.015Z [HTTP] GET / -> 404 (3ms)
+2026-08-22T22:09:17.640Z [HTTP] POST /api/v1/auth/register -> 400 (314ms)
+2026-08-22T22:09:26.552Z [HTTP] POST /api/v1/auth/register -> 400 (9ms)
+2026-08-22T22:09:35.620Z [HTTP] POST /api/v1/auth/register -> 400 (4ms)
+2026-08-22T22:09:47.559Z [HTTP] POST /api/v1/auth/register -> 409 (330ms)
+(node:24776) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
+2026-08-22T22:10:09.372Z [WARN] [DEV MAIL] To:gautamvaishnav5@gmail.com | Verify your Software World account | Your Software World verification code is: 269186
+
+It expires in 10 minutes. If you did not request this, ignore this email.
+2026-08-22T22:10:09.378Z [HTTP] POST /api/v1/auth/register -> 201 (475ms)
+2026-08-22T22:10:28.125Z [HTTP] POST /api/v1/auth/verify-otp -> 200 (192ms)
