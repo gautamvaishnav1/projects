@@ -1,12 +1,15 @@
+@import url("https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap");
 @import "tailwindcss";
 
-html,
-body,
-#root {
-  height: 100%;
-  margin: 0;
+body { font-family: "Space Grotesk", sans-serif; }
+.font-display { font-family: "Chakra Petch", sans-serif; }
+.font-data { font-family: "JetBrains Mono", monospace; }
+.glass {
+  background: rgba(8, 13, 30, 0.66);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(110, 200, 255, 0.16);
+  border-radius: 16px;
+  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.5);
 }
-
-body {
-  background: #070b18;
-}
+.chip { transition: all .15s; }
+.chip:hover { transform: translateY(-1px); border-color: rgba(110,200,255,.5); }
