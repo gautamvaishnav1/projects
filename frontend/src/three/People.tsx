@@ -3,10 +3,10 @@ import { useFrame } from "@react-three/fiber";
 import { useGLTF, useAnimations } from "@react-three/drei";
 import * as THREE from "three";
 import type { CityLayout } from "../lib/layout";
-import { useCity } from "../store/useCity";
 import { ENV } from "./env";
 import { SOLDIER, CHARACTERS } from "./assets";
 
+const OUTFITS = ["#ef4444", "#f59e0b", "#f472b6", "#22c55e", "#3b82f6", "#a78bfa", "#fb7185", "#fde047"];
 const UMBRELLAS = ["#ef4444", "#3b82f6", "#f59e0b", "#8b5cf6"];
 
 /** Animated pedestrian: Soldier.glb Walk clip, ping-pongs along a sidewalk path. */
@@ -15,13 +15,22 @@ function Walker({ a, b, seed }: { a: [number, number]; b: [number, number]; seed
   const umb = useRef<THREE.Group>(null!);
   const { scene, animations } = useGLTF(SOLDIER);
   const cloned = useMemo(() => scene.clone(true), [scene]);
+  // bright outfit: tint every material on this clone
+  const outfit = OUTFITS[Math.floor(seed * 97) % OUTFITS.length];
+  useMemo(() => {
+    cloned.traverse((o: any) => {
+      if (o.isMesh && o.material) {
+        o.material = o.material.clone();
+        if (o.material.color) o.material.color.lerp(new THREE.Color(outfit), 0.5);
+      }
+    });
+  }, [cloned, outfit]);
   const { actions, names } = useAnimations(animations, ref);
-  const weather = useCity((s) => s.weather);
+  const weather = useCitySafe();
   const speed = 0.55 + (seed % 1) * 0.45;
   const t = useRef(seed * 10);
 
   useMemo(() => {
-    // start Walk on every clone instance
     const clip = names.find((n) => /walk/i.test(n));
     if (clip && actions[clip]) { actions[clip].play(); (actions[clip] as any).timeScale = 1; }
   }, [actions, names]);
@@ -36,10 +45,10 @@ function Walker({ a, b, seed }: { a: [number, number]; b: [number, number]; seed
   });
 
   return (
-    <group ref={ref} scale={0.012}>
+    <group ref={ref} position={[a[0], 0.02, a[1]]} scale={1.25}>
       <primitive object={cloned} />
       {weather !== "clear" && weather !== "fog" && (
-        <group ref={umb} position={[0, 150, 0]} scale={60}>
+        <group ref={umb} position={[0, 1.75, 0]} scale={1}>
           <mesh><cylinderGeometry args={[0.02, 0.02, 0.6, 6]} /><meshStandardMaterial color="#334155" /></mesh>
           <mesh position={[0, 0.28, 0]}><coneGeometry args={[0.55, 0.35, 8]} /><meshStandardMaterial color={UMBRELLAS[Math.floor(seed * 90) % 4]} /></mesh>
         </group>
@@ -48,35 +57,94 @@ function Walker({ a, b, seed }: { a: [number, number]; b: [number, number]; seed
   );
 }
 
+// tiny hook shim so the file has no import cycle risk
+import { useCity } from "../store/useCity";
+function useCitySafe() { return useCity((s: any) => s.weather); }
+
 /** Static blocky character with idle animation from the Kenney pack. */
-function Bystander({ pos, seed }: { pos: [number, number]; seed: number }) {
+function Bystander({ pos, seed }: { pos: [number, number]; mid?: boolean; seed: number }) {
   const ref = useRef<THREE.Group>(null!);
   const url = CHARACTERS[Math.floor(seed * 9973) % CHARACTERS.length];
   const { scene, animations } = useGLTF(url);
   const cloned = useMemo(() => scene.clone(true), [scene]);
+  // limb pivots at hips/shoulders so idle clips bend limbs instead of the whole body
+  useMemo(() => {
+    let outfit = OUTFITS[Math.floor(seed * 31) % OUTFITS.length];
+    cloned.traverse((o: any) => {
+      if (o.isMesh) {
+        const g = o.geometry as THREE.BufferGeometry;
+        g.translate(0, -0.2, 0);
+        o.material = (Array.isArray(o.material) ? o.material : [o.material]).map((m: any) => {
+          const c = m.clone(); if (c.color) c.color.lerp(new THREE.Color(outfit), 0.45);
+          return c;
+        });
+      }
+    });
+  }, [cloned]);
   const { actions, names } = useAnimations(animations, cloned);
   useMemo(() => {
-    const clip = names.find((n) => /idle/i.test(n)) ?? names[0];
+    const clip = names.find((n) => /idle|wave/i.test(n)) ?? names[0];
     if (clip && actions[clip]) actions[clip].play();
   }, [actions, names]);
   return (
-    <group ref={ref} position={[pos[0], 0.02, pos[1]]} rotation-y={seed * Math.PI * 2} scale={1.15}>
+    <group ref={ref} position={[pos[0], 0.02, pos[1]]} rotation-y={seed * Math.PI * 2} scale={1.25}>
       <primitive object={cloned} />
     </group>
   );
 }
 
 export function People({ L }: { L: CityLayout }) {
-  const paths = [...L.people.map((p) => [p.a, p.b] as const), [[-6, -8], [6, -8]] as const, [[-14, 60], [14, 60]] as const];
+  const paths = [
+    ...L.people.map((p) => [p.a, p.b] as const),
+    // 2 extra walkers per avenue (west x=-42, east x=+42)
+    [[-42, -20], [-42, 30]] as const,
+    [[-42, 10], [-42, 52]] as const,
+    [[42, -14], [42, 34]] as const,
+    [[42, 8], [42, 44]] as const,
+    // bridge crossing at deck height
+    [[-6, -8], [6, -8], 1.75] as any,
+  ];
   const spots = useMemo(() => {
     const out: [number, number][] = [];
     L.districts.forEach((d) => { out.push([d.center[0] + 13, d.center[1] + 8], [d.center[0] - 12, d.center[1] - 9]); });
     return out;
   }, [L]);
+
   return (
     <group>
-      {paths.map((p, i) => <Walker key={i} a={p[0] as any} b={p[1] as any} seed={i * 0.37 + 0.13} />)}
-      {spots.map((s, i) => <Bystander key={i} pos={s} seed={i * 0.61 + 0.29} />)}
+      {paths.map((p, i) =>
+        p.length === 3 ? (
+          <BridgeWalker key={`bw${i}`} a={p[0] as any} b={p[1] as any} y={(p as any)[2]} seed={i * 0.37 + 0.13} />
+        ) : (
+          <Walker key={i} a={p[0] as any} b={p[1] as any} seed={i * 0.37 + 0.13} />
+        ),
+      )}
+      {spots.map((s, i) => <Bystander key={`s${i}`} pos={s} seed={i * 0.61 + 0.29} />)}
+    </group>
+  );
+}
+
+/** pedestrian on the bridge deck — walks the span at y=1.75 */
+function BridgeWalker({ a, b, y, seed }: { a: [number, number]; b: [number, number]; y: number; seed: number }) {
+  const ref = useRef<THREE.Group>(null!);
+  const { scene, animations } = useGLTF(SOLDIER);
+  const cloned = useMemo(() => scene.clone(true), [scene]);
+  const { actions, names } = useAnimations(animations, ref);
+  const speed = 0.35 + (seed % 1) * 0.2;
+  const t = useRef(seed * 7);
+  useMemo(() => {
+    const clip = names.find((n) => /walk/i.test(n));
+    if (clip && actions[clip]) actions[clip].play();
+  }, [actions, names]);
+  useFrame((_, dt) => {
+    t.current += dt * speed;
+    const u = (Math.sin(t.current * 0.5) + 1) / 2;
+    ref.current.position.set(a[0] + (b[0] - a[0]) * u, y, a[1] + (b[1] - a[1]) * u);
+    ref.current.rotation.y = Math.atan2(b[0] - a[0], b[1] - a[1]) * (Math.cos(t.current * 0.5) > 0 ? 1 : -1) + Math.PI;
+  });
+  return (
+    <group ref={ref} position={[a[0], y, a[1]]} scale={1.25}>
+      <primitive object={cloned} />
     </group>
   );
 }

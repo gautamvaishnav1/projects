@@ -12,6 +12,7 @@ interface S {
   setFocus: (x: number, z: number) => void;
   patch: (p: Partial<S>) => void;
   notify: (text: string, target?: string) => void;
+  dismiss: (id: number) => void;
 }
 let nid = 1;
 export const useCity = create<S>((set) => ({
@@ -23,5 +24,6 @@ export const useCity = create<S>((set) => ({
   setFocus: (x, z) => set((s) => ({ focus: { x, z, key: (s.focus?.key ?? 0) + 1 } })),
   patch: (p) => set(p),
   notify: (text, target) => set((s) => ({ notifications: [...s.notifications.slice(-3), { id: nid++, text, target }] })),
+  dismiss: (id) => set((s) => ({ notifications: s.notifications.filter((n) => n.id !== id) })),
 }));
 export const followTarget = { active: false, x: 0, z: 0 };

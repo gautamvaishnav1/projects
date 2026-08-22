@@ -10,11 +10,63 @@ const explain = (b: any, fn: any) =>
   `Traffic arrives from ${SAMPLE_CITY.edges.filter((e) => e.to === b.id).map((e) => LAYOUT.byId.get(e.from)?.name).join(", ") || "the client"} and continues to ` +
   `${SAMPLE_CITY.edges.filter((e) => e.from === b.id).map((e) => LAYOUT.byId.get(e.to)?.name).join(", ") || "nothing"}.`;
 
+/** bottom-left glass minimap: district rects + cyan camera dot; click = setFocus */
+function Minimap() {
+  const canvas = useRef<HTMLCanvasElement>(null);
+  const focus = useCity((st) => st.focus);
+  useEffect(() => {
+    let raf = 0;
+    const draw = () => {
+      const c = canvas.current; if (!c) return;
+      const g = c.getContext("2d")!;
+      const S = c.width, k = S / 200, ox = S / 2, oz = 30 * k; // world x∈[-100,100], z∈[-70,130]
+      g.clearRect(0, 0, S, S);
+      g.fillStyle = "rgba(7,11,24,.72)"; g.fillRect(0, 0, S, S);
+      // river
+      g.fillStyle = "rgba(16,60,90,.8)";
+      g.fillRect(ox - 5 * k, (-22 - 55) * k + oz, 10 * k, 110 * k);
+      // districts
+      for (const d of LAYOUT.districts) {
+        const w = d.stack === "database" ? 46 : 24, h = d.stack === "database" ? 14 : 20;
+        g.fillStyle = d.stack === "frontend" ? "rgba(56,189,248,.45)" : d.stack === "backend" ? "rgba(251,146,60,.45)" : d.stack === "database" ? "rgba(52,211,153,.5)" : "rgba(129,140,248,.45)";
+        g.fillRect(ox + (d.center[0] - w / 2) * k, oz + (d.center[1] - h / 2) * k, w * k, h * k);
+      }
+      // buildings
+      g.fillStyle = "rgba(226,240,255,.85)";
+      for (const b of LAYOUT.buildings) g.fillRect(ox + b.pos[0] * k - 1, oz + b.pos[2] * k - 1, 2.4, 2.4);
+      // camera dot
+      const fx = focus ? ox + focus.x * k : ox, fz = focus ? oz + focus.z * k : oz;
+      g.fillStyle = "#22d3ee";
+      g.beginPath(); g.arc(fx, fz, 3, 0, Math.PI * 2); g.fill();
+    };
+    raf = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(raf);
+  }, [focus]);
+  return (
+    <canvas
+      ref={canvas} width={160} height={160}
+      className="glass rounded-xl absolute left-4 bottom-5 pointer-events-auto cursor-crosshair"
+      onClick={(e) => {
+        const r = (e.target as HTMLCanvasElement).getBoundingClientRect();
+        const k = 160 / 200, ox = 80, oz = 30 * k;
+        useCity.getState().setFocus((e.clientX - r.left - ox) / k, (e.clientY - r.top - oz) / k);
+      }}
+    />
+  );
+}
+
 export function HUD() {
   const s = useCity();
   const [q, setQ] = useState(""); const [legend, setLegend] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   useEffect(() => { const h = (e: KeyboardEvent) => { if (e.key === "/") { e.preventDefault(); input.current?.focus(); } }; window.addEventListener("keydown", h); return () => window.removeEventListener("keydown", h); }, []);
+  // 6s auto-timeout for notifications
+  const nts = useCity((st) => st.notifications);
+  useEffect(() => {
+    if (!nts.length) return;
+    const t = setTimeout(() => useCity.getState().dismiss(nts[0].id), 6000);
+    return () => clearTimeout(t);
+  }, [nts]);
   const sel = LAYOUT.byId.get(s.selectedId ?? ""); const selFn = sel?.functions.find((f) => f.name === s.selectedFn);
   const results = useMemo(() => (q ? LAYOUT.buildings.filter((b) => (b.name + b.districtName).toLowerCase().includes(q.toLowerCase())).slice(0, 6) : []), [q]);
   const lines = LAYOUT.buildings.reduce((a, b) => a + b.loc, 0);
@@ -24,7 +76,9 @@ export function HUD() {
     <div className="absolute inset-0 pointer-events-none text-slate-100">
       {/* TOP BAR */}
       <div className="absolute top-0 left-0 right-0 flex items-center gap-3 p-4 pointer-events-auto">
-        <div className="glass px-4 py-2.5 font-display font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-fuchsia-400 text-lg">CODECITY AI</div>
+        <div className="glass px-4 py-2.5 font-display font-bold tracking-widest text-lg">
+          <span style={{ background: "linear-gradient(90deg,#67e8f9,#e879f9)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>CODECITY AI</span>
+        </div>
         <div className="glass px-3 py-2 text-xs text-slate-300">{SAMPLE_CITY.project.name}</div>
         <div className="relative flex-1 max-w-md">
           <Search size={14} className="absolute left-3 top-3.5 text-slate-400" />
@@ -89,11 +143,17 @@ export function HUD() {
           className="px-4 py-3 rounded-2xl bg-red-600/90 border border-red-400/50 text-xs font-display font-bold chip"><Bug size={12} className="inline mr-1" />FAIL PAYMENT</button>
       </div>
 
-      {/* NOTIFICATIONS */}
+      {/* NOTIFICATIONS — ✕ dismiss + 6s auto-timeout */}
       <div className="absolute right-4 bottom-5 grid gap-2 pointer-events-auto w-72">
         {s.notifications.map((n) => (
-          <button key={n.id} onClick={() => n.target && pick(n.target)} className="chip text-left px-3 py-2 rounded-2xl glass !border-red-400/40 text-xs hover:bg-red-400/10">{n.text} — click to inspect</button>))}
+          <div key={n.id} className="flex items-start gap-1">
+            <button onClick={() => n.target && pick(n.target)} className="chip flex-1 text-left px-3 py-2 rounded-2xl glass !border-red-400/40 text-xs hover:bg-red-400/10">{n.text} — click to inspect</button>
+            <button onClick={() => s.dismiss(n.id)} className="glass chip px-2 py-2 text-slate-400 hover:text-white" aria-label="dismiss">✕</button>
+          </div>))}
       </div>
+
+      {/* MINIMAP — bottom-left glass canvas, click to focus */}
+      <Minimap />
 
       {/* INSPECTOR */}
       {sel && (

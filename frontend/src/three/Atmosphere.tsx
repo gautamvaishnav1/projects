@@ -19,10 +19,10 @@ const healthWeather = (s: any): Weather => {
 export function Atmosphere() {
   const scene = useThree((s) => s.scene);
   const sun = useRef<THREE.DirectionalLight>(null!), moon = useRef<THREE.DirectionalLight>(null!), amb = useRef<THREE.AmbientLight>(null!), stars = useRef<THREE.Group>(null!);
-  const acc = useRef(0), liveAcc = useRef(0), tmp = useMemo(() => new THREE.Color(), []);
-  const cloudMat = useMemo(() => new THREE.MeshStandardMaterial({ transparent: true, opacity: 0.25, depthWrite: false }), []);
+  const acc = useRef(0), liveAcc = useRef(0), rainAcc = useRef(1), tmp = useMemo(() => new THREE.Color(), []);
+  const cloudMat = useMemo(() => new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.2, depthWrite: false, fog: false }), []);
   const shadowMat = useMemo(() => new THREE.MeshBasicMaterial({ color: "#000", transparent: true, opacity: 0.15, depthWrite: false }), []);
-  const clouds = useMemo(() => Array.from({ length: 9 }, () => ({ x: (Math.random() - .5) * 260, y: 36 + Math.random() * 12, z: (Math.random() - .5) * 200, s: 9 + Math.random() * 9, v: 1.5 + Math.random() * 2 })), []);
+  const clouds = useMemo(() => Array.from({ length: 9 }, () => ({ x: (Math.random() - .5) * 260, y: 53 + Math.random() * 5, z: (Math.random() - .5) * 200, s: 9 + Math.random() * 9, v: 1.5 + Math.random() * 2 })), []);
 
   useFrame((_, dt) => {
     const st = useCity.getState();
@@ -42,22 +42,28 @@ export function Atmosphere() {
     const a = ((st.time - 6) / 12) * Math.PI, elev = Math.sin(a);
     const day = THREE.MathUtils.smoothstep(elev, -0.12, 0.3);
     const dusk = Math.exp(-Math.pow((elev - 0.03) / 0.14, 2));
+    ENV.night = 1 - day; // ← restored: the whole scene keys off this
     tmp.copy(NIGHT).lerp(DAY, day).lerp(DUSK, dusk * 0.5).lerp(GRAY, ENV.cloud * 0.65 * (0.3 + day * 0.7));
     (scene.background as THREE.Color).copy(tmp);
-    const fog = scene.fog as THREE.FogExp2; fog.color.copy(tmp); fog.density = 0.0016 + ENV.fog * 0.0075 + ENV.wet * 0.0008;
+    const fog = scene.fog as THREE.FogExp2; fog.color.copy(tmp); fog.density = 0.002 + ENV.fog * 0.0075 + ENV.wet * 0.0008;
+    (scene as any).environmentIntensity = 0.1 + day * 0.7;
     sun.current.position.set(Math.cos(a) * -90, Math.sin(a) * 90, 30);
     sun.current.intensity = day * 1.5 * (1 - ENV.cloud * 0.75);
     moon.current.intensity = (1 - day) * 0.3;
-    amb.current.intensity = 0.16 + day * 0.5 - ENV.cloud * 0.1;
+    amb.current.intensity = 0.3 + day * 0.45;
     stars.current.visible = day < 0.35 && ENV.cloud < 0.7;
-    cloudMat.color.set(ENV.cloud > 0.6 ? "#565f6e" : "#ffffff"); cloudMat.opacity = 0.18 + ENV.cloud * 0.35;
+    cloudMat.color.set(ENV.cloud > 0.6 ? "#6b7280" : "#ffffff");
+    cloudMat.opacity = 0.16 + ENV.cloud * 0.25;
     shadowMat.opacity = ENV.cloud * 0.2 + ENV.wet * 0.08;
-    setRainLevel(ENV.rain * 0.8 + ENV.storm * 0.2);
+    // audio params throttled to ≤2 Hz
+    rainAcc.current += dt;
+    if (rainAcc.current > 0.5) { rainAcc.current = 0; setRainLevel(ENV.rain * 0.8 + ENV.storm * 0.2); }
   });
 
   return (
     <group>
       <ambientLight ref={amb} intensity={0.4} />
+      <hemisphereLight args={["#8ecbe8", "#1a2418", 0.25]} />
       <directionalLight ref={sun} castShadow shadow-mapSize={[2048, 2048]} shadow-camera-left={-110} shadow-camera-right={110} shadow-camera-top={110} shadow-camera-bottom={-110} />
       <directionalLight ref={moon} color="#7aa2ff" position={[-40, 60, -30]} />
       <group ref={stars}><Stars radius={200} depth={40} count={2500} factor={4} fade /></group>
@@ -72,7 +78,7 @@ function Cloud({ x, y, z, s, v, mat, shadowMat }: any) {
   return (
     <group ref={ref} position={[x, y, z]}>
       {[0, 1, 2, 3].map((i) => (
-        <mesh key={i} position={[(i - 1.5) * s * 0.5, (i % 2) * s * 0.08, (i % 3) * s * 0.12]} scale={[s * (0.7 + (i % 2) * 0.3), s * 0.28, s * 0.5]}>
+        <mesh key={i} position={[(i - 1.5) * s * 0.62, (i % 2) * s * 0.05, (i % 3) * s * 0.1]} scale={[s * 1.7, s * 0.32, s * 0.9]}>
           <sphereGeometry args={[1, 12, 12]} /><primitive object={mat} attach="material" />
         </mesh>))}
       <mesh rotation-x={-Math.PI / 2} position={[0, 0.6 - y, 0]}>

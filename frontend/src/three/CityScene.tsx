@@ -7,7 +7,7 @@ import { SAMPLE_CITY } from "../data/sampleCity";
 import { useCity } from "../store/useCity";
 import { Building, District, NightMaterials } from "./Buildings";
 import { Ground, Roads, Underground, Decor, Links } from "./Infrastructure";
-import { Traffic } from "./Traffic";
+import { Traffic } from "./Traffic.tsx";
 import { People } from "./People";
 import { River } from "./Water";
 import { Atmosphere } from "./Atmosphere";
@@ -38,26 +38,28 @@ export function CityScene() {
     <Canvas shadows camera={{ position: [0, 70, 90], fov: 45 }} onPointerMissed={() => useCity.getState().select(null)}>
       <color attach="background" args={["#070b18"]} />
       <fogExp2 attach="fog" args={["#070b18", 0.002]} />
-      <Suspense fallback={null}>
-        <SkyEnvironment />
-        <Ground />
-        <River />
-        <Roads L={LAYOUT} />
-        <Underground L={LAYOUT} />
-        <Decor L={LAYOUT} />
-        <Links L={LAYOUT} />
-        {LAYOUT.districts.map((d) => <District key={d.id} d={d} />)}
-        {LAYOUT.buildings.map((b) => <Building key={b.id} b={b} />)}
-        <Traffic L={LAYOUT} />
-        <People L={LAYOUT} />
-        <Precipitation />
-        <Lightning target={[LAYOUT.byId.get("be-payctrl")!.pos[0], LAYOUT.byId.get("be-payctrl")!.pos[2]]} />
-        <Wet L={LAYOUT} />
-        <Atmosphere />
-        <NightMaterials />
-        <CameraRig />
-        <EffectComposer><Bloom intensity={0.65} luminanceThreshold={0.85} mipmapBlur /><Vignette darkness={0.55} /></EffectComposer>
-      </Suspense>
+      {/* city renders immediately; ONLY the HDR is suspended */}
+      <Suspense fallback={null}><SkyEnvironment /></Suspense>
+      <Ground />
+      <River />
+      <Roads L={LAYOUT} />
+      <Underground L={LAYOUT} />
+      <Decor L={LAYOUT} />
+      <Links L={LAYOUT} />
+      {LAYOUT.districts.map((d) => <District key={d.id} d={d} />)}
+      {LAYOUT.buildings.map((b) => <Building key={b.id} b={b} />)}
+      <Traffic L={LAYOUT} />
+      <People L={LAYOUT} />
+      <Precipitation />
+      <Lightning target={[LAYOUT.byId.get("be-payctrl")!.pos[0], LAYOUT.byId.get("be-payctrl")!.pos[2]]} />
+      <Wet L={LAYOUT} />
+      <Atmosphere />
+      <NightMaterials />
+      <CameraRig />
+      <EffectComposer>
+        <Bloom intensity={0.55} luminanceThreshold={1.0} mipmapBlur />
+        <Vignette darkness={0.55} />
+      </EffectComposer>
       <OrbitControls makeDefault enableDamping maxPolarAngle={Math.PI / 2.15} minDistance={8} maxDistance={180} />
     </Canvas>
   );

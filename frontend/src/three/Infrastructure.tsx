@@ -37,13 +37,13 @@ export function Roads({ L }: { L: CityLayout }) {
   return (
     <group>
       {L.roads.map((s, i) => { const p = seg(s.a, s.b); const t = (s.kind === "highway" ? hw : st).clone(); t.repeat.set(p.len / 8, s.kind === "highway" ? 1.6 : 0.8); t.needsUpdate = true; return (
-        <mesh key={i} rotation={[-Math.PI / 2, 0, 0]} position={[p.mid[0], s.kind === "highway" ? 0.09 : 0.08, p.mid[1]]} rotation-z={-p.rot} receiveShadow>
-          <planeGeometry args={[p.len, s.w]} /><meshStandardMaterial map={t} roughness={0.95} />
+        <mesh key={i} rotation={[-Math.PI / 2, 0, Math.atan2(-(s.b[1] - s.a[1]), s.b[0] - s.a[0])]} position={[p.mid[0], s.kind === "highway" ? 0.09 : 0.08, p.mid[1]]} receiveShadow>
+          <planeGeometry args={[p.len, s.w]} /><meshStandardMaterial map={t} color="#2b3038" roughness={0.95} />
         </mesh> ); })}
       {/* lane dashes (layout generates them; now they're actually rendered) */}
       <Instances limit={400} frustumCulled={false}>
         <planeGeometry args={[1.6, 0.18]} />
-        <meshBasicMaterial color="#e8d9a0" transparent opacity={0.85} />
+        <meshStandardMaterial color="#e8d9a0" emissive="#f59e0b" emissiveIntensity={ENV.night * 0.8} transparent opacity={0.85} />
         {dashes.map((d, i) => <Instance key={i} position={[d.p[0], 0.105, d.p[1]]} rotation={[0, d.rot, 0]} />)}
       </Instances>
       {L.bridges.map((z, i) => (
@@ -106,7 +106,7 @@ function GltfTree({ pos, seed }: { pos: [number, number]; seed: number }) {
 export function Decor({ L }: { L: CityLayout }) {
   const failing = useCity((s) => s.failing);
   const lamp = useRef<THREE.MeshStandardMaterial>(null!);
-  useFrame(() => { if (lamp.current) lamp.current.emissiveIntensity = 0.3 + ENV.night * 2.6; });
+  useFrame(() => { if (lamp.current) lamp.current.emissiveIntensity = 0.2 + ENV.night * 1.0; });
   const props = useMemo(() => {
     // dress the database platform + district corners with street furniture
     const out: { url: string; p: [number, number]; rot: number }[] = [];
@@ -164,7 +164,7 @@ export function Decor({ L }: { L: CityLayout }) {
         </group>
       )}
       <Instances limit={100}><cylinderGeometry args={[0.07, 0.09, 3, 6]} /><meshStandardMaterial color="#8b94a3" metalness={0.6} roughness={0.4} />{L.lamps.map((t, i) => <Instance key={i} position={[t[0], 1.5, t[1]]} />)}</Instances>
-      <Instances limit={100}><sphereGeometry args={[0.26, 10, 10]} /><meshStandardMaterial ref={lamp} color="#fef9c3" emissive="#fde047" emissiveIntensity={1} />{L.lamps.map((t, i) => <Instance key={i} position={[t[0], 3.1, t[1]]} />)}</Instances>
+      <Instances limit={100}><sphereGeometry args={[0.18, 10, 10]} /><meshStandardMaterial ref={lamp} color="#fef9c3" emissive="#ffcf7a" emissiveIntensity={1} />{L.lamps.map((t, i) => <Instance key={i} position={[t[0], 3.1, t[1]]} />)}</Instances>
     </group>
   );
 }
