@@ -1,0 +1,18 @@
+{
+  "name": "codecity-analyzer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "GitHub repo -> CityJSON for CodeCity AI",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@babel/parser": "^7.26.0",
+    "@babel/traverse": "^7.26.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
+    "tar": "^7.4.3"
+  }
+}

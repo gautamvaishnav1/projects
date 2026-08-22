@@ -1,0 +1,20 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+.env
+.env.*
+*.local
+
+# editor / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# project-local backups & scratch dirs
+_legacy_src/
+auth-server/data/
+*.tsbuildinfo

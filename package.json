@@ -1,0 +1,14 @@
+{
+  "name": "codecity",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CodeCity AI — monorepo runner (auth + analyzer + web)",
+  "scripts": {
+    "dev": "concurrently -k -n AUTH,ANALYZER,WEB -c magenta,yellow,cyan \"npm --prefix auth-server run dev\" \"npm --prefix analyzer run dev\" \"npm --prefix frontend run dev\"",
+    "start": "concurrently -k -n AUTH,ANALYZER,WEB -c magenta,yellow,cyan \"npm --prefix auth-server start\" \"npm --prefix analyzer start\" \"npm --prefix frontend start\"",
+    "install:all": "npm --prefix auth-server install && npm --prefix analyzer install && npm --prefix frontend install"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.4"
+  }
+}
