@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, Play, Bug, Radio, Keyboard, GitBranch, LogOut } from "lucide-react";
-import { useAuth } from "../lib/auth";
-import type { CityJSON } from "../types";
-import { useCityLayout } from "../lib/city";
+import { apiFetch, API_BASE, useAuth } from "../lib/auth";
+import { architectureToCity, useCityLayout } from "../lib/city";
 import { KIND_COLOR } from "../lib/layout";
 import { useCity } from "../store/useCity";
 
-const ANALYZER_URL = "http://localhost:8787/api/analyze";
+const POLL_INTERVAL_MS = 2000;
+const MAX_POLLS = 90; // ~3 min ceiling
 
 function UserChip() {
   const user = useAuth((s) => s.user);
@@ -36,19 +36,54 @@ function RepoLoader() {
     if (!target || busy) return;
     setBusy(true);
     try {
-      const res = await fetch(ANALYZER_URL, {
+      if (!useAuth.getState().token) {
+        throw new Error("sign in first — ⌘K → Sign in / Create account");
+      }
+
+      // 1. create a project for the repo
+      const repoUrl = /^https?:\/\//i.test(target) ? target : `https://${target}`;
+      const name = decodeURIComponent(repoUrl.split("?")[0].replace(/\/+$/, "").split("/").pop() || "repo");
+      const projRes = await apiFetch("/projects", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ repoUrl: target }),
+        body: JSON.stringify({ name, repoUrl }),
       });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || `HTTP ${res.status}`);
-      const city = json as CityJSON;
+      const projJson = await projRes.json();
+      if (!projRes.ok) throw new Error(projJson.message ?? `HTTP ${projRes.status}`);
+      const projectId: string = projJson.data.project.id;
+
+      // 2. kick off the analysis pipeline
+      const startRes = await apiFetch(`/projects/${projectId}/analyze`, { method: "POST" });
+      const startJson = await startRes.json();
+      if (startRes.status !== 202 && !startRes.ok) throw new Error(startJson.message ?? `HTTP ${startRes.status}`);
+      const analysisId: string = startJson.data.analysisId;
+
+      // 3. poll until the pipeline completes
+      let status = "running";
+      for (let i = 0; i < MAX_POLLS; i++) {
+        await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+        const stRes = await fetch(`${API_BASE}/analyses/${analysisId}/status`, {
+          headers: { Authorization: `Bearer ${useAuth.getState().token ?? ""}` },
+        });
+        const stJson = await stRes.json();
+        if (!stRes.ok) throw new Error(stJson.message ?? `HTTP ${stRes.status}`);
+        status = stJson.data.status as string;
+        if (status !== "running") break;
+      }
+      if (status !== "completed") throw new Error(`analysis ${status} — check backend logs`);
+
+      // 4. fetch the validated city architecture
+      const archRes = await fetch(`${API_BASE}/projects/${projectId}/architecture`, {
+        headers: { Authorization: `Bearer ${useAuth.getState().token ?? ""}` },
+      });
+      const archJson = await archRes.json();
+      if (!archRes.ok) throw new Error(archJson.message ?? `HTTP ${archRes.status}`);
+
+      const city = architectureToCity(archJson.data);
       const files = city.districts.reduce((a, d) => a + d.buildings.length, 0);
       setCity(city);
       notify(`🏙 Loaded ${city.project.name} — ${files} buildings`, undefined, "success");
     } catch (e) {
-      notify(`⚠ Analyzer failed: ${(e as Error).message}. Is the analyzer running on :8787?`, undefined, "error");
+      notify(`⚠ Backend failed: ${(e as Error).message}. Is it running on :5000?`, undefined, "error");
     } finally {
       setBusy(false);
     }

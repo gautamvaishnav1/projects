@@ -68,7 +68,7 @@ function PaletteInner({ onClose, items }: { onClose: () => void; items: PaletteI
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.96, opacity: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 28 }}
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e: React.MouseEvent) => e.stopPropagation()}
         onKeyDown={onKeyDown}
         className="cc-glass w-[min(560px,92vw)] overflow-hidden rounded-2xl shadow-2xl"
       >

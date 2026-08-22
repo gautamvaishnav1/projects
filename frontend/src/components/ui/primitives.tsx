@@ -113,7 +113,7 @@ export function Magnetic({ children }: { children: ReactNode }) {
     <motion.div
       style={{ x: sx, y: sy }}
       className="inline-block"
-      onMouseMove={(e) => {
+      onMouseMove={(e: React.MouseEvent) => {
         const r = e.currentTarget.getBoundingClientRect();
         const dx = e.clientX - (r.left + r.width / 2);
         const dy = e.clientY - (r.top + r.height / 2);

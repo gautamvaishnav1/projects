@@ -11,6 +11,7 @@ import {
 import {
   beginSignIn,
   beginSignUp,
+  oauthStartUrl,
   resendOtp,
   verifyOtp,
 } from "../lib/auth";
@@ -47,17 +48,8 @@ function AuthInner({ onClose, onSuccess }: { onClose: () => void; onSuccess: () 
     if (oauthBusy) return;
     setOauthBusy(provider);
     setError(null);
-    try {
-      const res = await fetch(`http://localhost:8788/api/auth/oauth/${provider}/start?json=1`);
-      const json = await res.json();
-      if (!res.ok || !json.url) throw new Error(json.error ?? `HTTP ${res.status}`);
-      window.location.href = json.url as string;
-    } catch {
-      setError(
-        "Can't reach the auth server on :8788. Start it with `npm start` inside projects/auth-server — or run everything at once with `npm run dev` in the projects root.",
-      );
-      setOauthBusy(null);
-    }
+    // backend handles the full redirect dance and bounces back to /auth/success?token=…
+    window.location.href = oauthStartUrl(provider);
   }
 
   useEffect(() => {
@@ -290,7 +282,7 @@ function ModalFrame({ children, onClose }: { children: React.ReactNode; onClose:
         initial={{ scale: 0.96, y: -10 }}
         animate={{ scale: 1, y: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 28 }}
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e: React.MouseEvent) => e.stopPropagation()}
         className="cc-glass w-full max-w-md rounded-2xl p-6 shadow-2xl"
       >
         {children}
