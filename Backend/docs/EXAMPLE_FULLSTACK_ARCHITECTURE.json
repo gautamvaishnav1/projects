@@ -1,0 +1,232 @@
+﻿  "filesConsidered": 11,
+  "filesParsedBabel": 11,
+  "filesFallback": 0,
+  "filesFailed": 0,
+  "totalFunctions": 8,
+  "totalClasses": 1,
+  "totalRoutes": 7,
+  "totalModels": 1,
+  "durationMs": 69
+}
+
+=== ARCHITECTURE (what GET /projects/:id/architecture returns) ===
+{
+  "components": [
+    {
+      "id": "frontend",
+      "name": "Frontend App",
+      "type": "frontend",
+      "description": "2 UI component file(s) rendering the user interface.",
+      "files": [
+        "client/src/App.tsx",
+        "client/src/components/LoginForm.tsx"
+      ]
+    },
+    {
+      "id": "server-app",
+      "name": "Express Server",
+      "type": "config",
+      "description": "Application entry point wiring middleware and mounting routers (server.js).",
+      "files": [
+        "server.js"
+      ]
+    },
+    {
+      "id": "app-routes",
+      "name": "App Routes",
+      "type": "routes",
+      "description": "HTTP endpoints for app (USE /, ...).",
+      "files": [
+        "src/app.js"
+      ]
+    },
+    {
+      "id": "app-controller",
+      "name": "App Controller",
+      "type": "controller",
+      "description": "Handles app requests (e.g. express.json(...)).",
+      "files": [
+        "src/app.js"
+      ]
+    },
+    {
+      "id": "auth-middleware",
+      "name": "Auth Middleware",
+      "type": "auth",
+      "description": "Validates JWTs / sessions before protected handlers run.",
+      "files": []
+    },
+    {
+      "id": "auth-routes",
+      "name": "Auth Routes",
+      "type": "routes",
+      "description": "HTTP endpoints for auth (POST /register, ...).",
+      "files": [
+        "src/routes/auth.routes.ts"
+      ]
+    },
+    {
+      "id": "auth-controller",
+      "name": "Auth Controller",
+      "type": "controller",
+      "description": "Handles auth requests (e.g. register).",
+      "files": [
+        "src/routes/auth.routes.ts"
+      ]
+    },
+    {
+      "id": "users-routes",
+      "name": "Users Routes",
+      "type": "routes",
+      "description": "HTTP endpoints for users (GET /me, ...).",
+      "files": [
+        "src/routes/users.routes.ts"
+      ]
+    },
+    {
+      "id": "users-controller",
+      "name": "Users Controller",
+      "type": "controller",
+      "description": "Handles users requests (e.g. getProfile).",
+      "files": [
+        "src/routes/users.routes.ts"
+      ]
+    },
+    {
+      "id": "charge-svc",
+      "name": "Charge",
+      "type": "service",
+      "description": "Business logic for payments.",
+      "files": [
+        "src/integrations/payments.service.ts"
+      ]
+    },
+    {
+      "id": "payments-service-svc",
+      "name": "Payments.service",
+      "type": "service",
+      "description": "Business logic for payments.",
+      "files": [
+        "src/integrations/payments.service.ts"
+      ]
+    },
+    {
+      "id": "userservice-svc",
+      "name": "UserService",
+      "type": "service",
+      "description": "Business logic for user.",
+      "files": [
+        "src/services/user.service.ts"
+      ]
+    },
+    {
+      "id": "user-service-svc",
+      "name": "User.service",
+      "type": "service",
+      "description": "Business logic for user.",
+      "files": [
+        "src/services/user.service.ts"
+      ]
+    },
+    {
+      "id": "user-model",
+      "name": "User Model",
+      "type": "model",
+      "description": "Mongoose model \"User\", fields: email, passwordHash, avatarUrl.",
+      "files": [
+        "src/models/user.model.ts"
+      ]
+    },
+    {
+      "id": "mongodb-database",
+      "name": "MongoDB Database",
+      "type": "database",
+      "description": "Persistence layer storing documents via Mongoose.",
+      "files": []
+    },
+    {
+      "id": "external-services",
+      "name": "External Services",
+      "type": "integration",
+      "description": "Third-party APIs/SDKs used directly: axios, stripe.",
+      "files": []
+    }
+  ],
+  "connections": [
+    {
+      "from": "frontend",
+      "to": "app-routes",
+      "label": "sends requests"
+    },
+    {
+      "from": "app-routes",
+      "to": "app-controller",
+      "label": "delegates to"
+    },
+    {
+      "from": "app-routes",
+      "to": "auth-middleware",
+      "label": "guards"
+    },
+    {
+      "from": "frontend",
+      "to": "auth-routes",
+      "label": "sends requests"
+    },
+    {
+      "from": "auth-routes",
+      "to": "auth-controller",
+      "label": "delegates to"
+    },
+    {
+      "from": "auth-routes",
+      "to": "auth-middleware",
+      "label": "guards"
+    },
+    {
+      "from": "frontend",
+      "to": "users-routes",
+      "label": "sends requests"
+    },
+    {
+      "from": "users-routes",
+      "to": "users-controller",
+      "label": "delegates to"
+    },
+    {
+      "from": "users-routes",
+      "to": "auth-middleware",
+      "label": "guards"
+    },
+    {
+      "from": "userservice-svc",
+      "to": "user-model",
+      "label": "uses"
+    },
+    {
+      "from": "user-model",
+      "to": "mongodb-database",
+      "label": "persists to"
+    },
+    {
+      "from": "charge-svc",
+      "to": "external-services",
+      "label": "integrates with"
+    },
+    {
+      "from": "payments-service-svc",
+      "to": "external-services",
+      "label": "integrates with"
+    },
+    {
+      "from": "userservice-svc",
+      "to": "external-services",
+      "label": "integrates with"
+    },
+    {
+      "from": "user-service-svc",
+      "to": "external-services",
+      "label": "integrates with"
+    }
+  ]
+}

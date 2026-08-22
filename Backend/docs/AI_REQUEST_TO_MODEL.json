@@ -1,0 +1,74 @@
+{
+  "_readme": "FILE 1 of 2 — 'JSON I SEND TO AI'. This is the EXACT request payload this backend builds and POSTs to the AI provider (OpenAI-compatible /chat/completions). Built by src/modules/ai/architect.service.ts (analysis) and src/modules/ai/chat.service.ts (chat). Sent via src/infrastructure/llm/llm.client.ts using fetch().",
+
+  "aiProviderConfig": {
+    "_note": "Values come from Backend/.env — put YOUR API KEY there. Never hardcode the key here.",
+    "LLM_BASE_URL": "https://api.openai.com/v1",
+    "LLM_API_KEY": "<PASTE_YOUR_API_KEY_IN_.env_AS_LLM_API_KEY>",
+    "LLM_MODEL": "gpt-5.6",
+    "LLM_TIMEOUT_MS": 60000,
+    "otherProviders": {
+      "openrouter": { "LLM_BASE_URL": "https://openrouter.ai/api/v1", "exampleModel": "anthropic/claude-opus-5" },
+      "groq": { "LLM_BASE_URL": "https://api.groq.com/openai/v1", "exampleModel": "llama-3.3-70b-versatile" },
+      "ollama_local": { "LLM_BASE_URL": "http://localhost:11434/v1", "exampleModel": "llama3", "LLM_API_KEY": "ollama" }
+    }
+  },
+
+  "httpRequest": {
+    "method": "POST",
+    "url": "{LLM_BASE_URL}/chat/completions",
+    "headers": {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer <YOUR_LLM_API_KEY>"
+    }
+  },
+
+  "useCase_1_analyzeGitHubRepo": {
+    "_note": "Triggered by POST /api/v1/projects/:id/analyze after the GitHub MERN repo is cloned & parsed. temperature=0.15.",
+    "bodyExample": {
+      "model": "gpt-5.6",
+      "temperature": 0.15,
+      "messages": [
+        {
+          "role": "system",
+          "content": "You are a senior software architect... [ARCHITECT_SYSTEM_PROMPT from ai.prompts.ts] ... Reply with ONLY valid JSON having 'components' and 'connections' (4-25 components, stable kebab-case ids)."
+        },
+        {
+          "role": "user",
+          "content": "Analyze this codebase summary and produce the architecture JSON.\n\n{\"project\":{\"name\":\"node-express-mongoose-boilerplate\",\"language\":\"JavaScript\"},\"stats\":{\"filesConsidered\":60,\"totalRoutes\":25,\"totalModels\":6},\"dependencies\":[\"express\",\"mongoose\",\"jsonwebtoken\",\"bcryptjs\",\"express-validator\",\"passport\"],\"routes\":[{\"method\":\"POST\",\"path\":\"/auth/register\",\"handler\":\"authController.register\",\"file\":\"src/routes/auth.routes.ts\"},{\"method\":\"POST\",\"path\":\"/users/me\",\"handler\":\"userController.updateMe\",\"file\":\"src/routes/user.routes.ts\"}],\"models\":[{\"name\":\"User\",\"fields\":[\"email\",\"password\",\"name\",\"role\"],\"file\":\"src/models/user.model.ts\"}],\"controllers\":[{\"name\":\"authController\",\"file\":\"src/controllers/auth.controller.ts\"}],\"services\":[{\"name\":\"emailService\",\"file\":\"src/services/email.service.ts\"}],\"authIndicators\":{\"jwtLibraryUsed\":true,\"passwordHashingUsed\":true,\"evidence\":[\"jwt used in src/services/token.service.ts\"]},\"filesByRole\":{\"route\":8,\"controller\":6,\"model\":6,\"service\":4,\"entry\":1},\"sampleImports\":[\"import mongoose from 'mongoose'\"]}"
+        }
+      ]
+    },
+    "retryOnBadShape": {
+      "_note": "If AI output fails schema validation, one retry is sent with temperature=0 adding:",
+      "extraMessages": [
+        { "role": "assistant", "content": "<previous bad reply, max 4000 chars>" },
+        { "role": "user", "content": "Your previous reply was not valid per the schema. Reply again with ONLY the JSON object having \"components\" and \"connections\"." }
+      ]
+    }
+  },
+
+  "useCase_2_chatQuestion": {
+    "_note": "Triggered by POST /api/v1/projects/:id/chat. temperature=0.3. Architecture ids come from the stored analysis.",
+    "bodyExample": {
+      "model": "gpt-5.6",
+      "temperature": 0.3,
+      "messages": [
+        {
+          "role": "system",
+          "content": "You are Software World Guide... Answer in 2-5 short sentences then final lines EXACTLY:\nTARGET_COMPONENT: <component-id-or-NONE>\nPATH: <comma-separated component ids or NONE>"
+        },
+        {
+          "role": "user",
+          "content": "Architecture:\n{\"components\":[{\"id\":\"auth-routes\",\"name\":\"Auth Routes\",\"type\":\"routes\"},{\"id\":\"auth-controller\",\"name\":\"Auth Controller\",\"type\":\"controller\"},{\"id\":\"user-model\",\"name\":\"User Model\",\"type\":\"model\"},{\"id\":\"mongodb-database\",\"name\":\"MongoDB Database\",\"type\":\"database\"}],\"connections\":[{\"from\":\"auth-routes\",\"to\":\"auth-controller\",\"label\":\"delegates to\"},{\"from\":\"auth-controller\",\"to\":\"user-model\",\"label\":\"uses\"},{\"from\":\"user-model\",\"to\":\"mongodb-database\",\"label\":\"persists to\"}]}\n\nQuestion: How does authentication work?"
+        }
+      ]
+    }
+  },
+
+  "expectedAiReplyShape": {
+    "_seeAlso": "See FILE 2 (AI_RESPONSE_TO_FRONTEND.json) for how this reply is validated and forwarded to the frontend.",
+    "analyzeReplyMustBe": "{ \"components\": [...], \"connections\": [...] }",
+    "chatReplyMustBe": "prose answer + final lines 'TARGET_COMPONENT: <id|NONE>' and 'PATH: <ids|NONE>'"
+  }
+}
