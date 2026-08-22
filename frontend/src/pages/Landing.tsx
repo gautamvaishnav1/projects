@@ -13,9 +13,8 @@ const BRAND = {
 
 const INDEX = [
   { n: "01", t: "SYSTEM", meta: "12 COLUMNS", id: "raster" },
-  { n: "02", t: "TYPE", meta: "ARCHIVO 400–900", id: "satz" },
-  { n: "03", t: "INKS", meta: "3 PRESS COLORS", id: "farben" },
-  { n: "04", t: "LIVE DATA", meta: "DEPARTURES BOARD", id: "zeit" },
+  { n: "02", t: "INKS", meta: "3 PRESS COLORS", id: "farben" },
+  { n: "03", t: "LIVE DATA", meta: "DEPARTURES BOARD", id: "zeit" },
 ];
 
 const SPECS: Array<[string, string]> = [
@@ -211,47 +210,6 @@ function RasterSection() {
   );
 }
 
-/* ── 02 TYPE — one grotesque, contrast by weight & scale ─────────── */
-
-import type { ReactNode } from "react";
-
-function SpecimenRow({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="grid grid-cols-12 gap-x-6 gap-y-3 border-t border-black-ink/25 py-8">
-      <p className="caption-caps col-span-12 pt-2 text-black-ink/50 md:col-span-3">{label}</p>
-      <div className="col-span-12 md:col-span-9">{children}</div>
-    </div>
-  );
-}
-
-function SatzSection() {
-  return (
-    <section id="satz" className="sheet scroll-mt-8 py-20 md:py-28">
-      <SecHead n="02" t="TYPE" meta="ARCHIVO — ONE GROTESK, NO SECOND" />
-      <div className="border-b border-black-ink/25">
-        <SpecimenRow label="DISPLAY — BLACK 900 · 96–160 PX · FLUSH LEFT">
-          <Reveal><p className="display-caps text-[clamp(56px,9vw,140px)]">Grotesk 900</p></Reveal>
-        </SpecimenRow>
-        <SpecimenRow label="SUBHEAD — BOLD 700 · CAPS INSTEAD OF SMALL CAPS">
-          <Reveal><p className="text-3xl font-bold uppercase tracking-tight md:text-4xl">Hamburgefonstiv — Scale II</p></Reveal>
-        </SpecimenRow>
-        <SpecimenRow label="TEXT — REGULAR 400 · 15/24 · MAX 54 CH">
-          <Reveal>
-            <p className="max-w-[54ch] text-[15px] leading-6">
-              Type follows reading, not moods. One single cut carries the whole page:
-              contrast comes from weight and size, never from color, never from ornament.
-              Paragraphs stay flat; emphasis is the grid's business.
-            </p>
-          </Reveal>
-        </SpecimenRow>
-        <SpecimenRow label="CAPTION — 10 PT · TRACKING +220 · CAPITALS">
-          <Reveal><p className="caption-caps">Captions, source notes and the colophon stand in this line</p></Reveal>
-        </SpecimenRow>
-      </div>
-    </section>
-  );
-}
-
 /* ── quote band — inversion moment ───────────────────────────────── */
 
 function QuoteBand() {
@@ -284,7 +242,7 @@ function FarbenSection() {
     <section id="farben" className="sheet relative scroll-mt-8 py-20 md:py-28">
       <span aria-hidden className="misreg absolute -top-10 right-6 hidden h-40 w-40 rounded-full bg-signal lg:block xl:right-24" />
 
-      <SecHead n="03" t="INKS" meta="FLAT COLORS — NO GRADIENTS" />
+      <SecHead n="02" t="INKS" meta="FLAT COLORS — NO GRADIENTS" />
       <div className="grid grid-cols-12 items-end gap-x-6 gap-y-10">
         {SWATCHES.map((s, i) => (
           <div key={s.name} className={`col-span-12 sm:col-span-4 ${s.span}`}>
@@ -357,7 +315,7 @@ function ZeitSection() {
 
   return (
     <section id="zeit" className="sheet scroll-mt-8 py-20 md:py-28">
-      <SecHead n="04" t="LIVE DATA" meta="TIMETABLE VALID WHILE YOUR APP RUNS" />
+      <SecHead n="03" t="LIVE DATA" meta="TIMETABLE VALID WHILE YOUR APP RUNS" />
       <div className="grid grid-cols-12 gap-x-6 gap-y-12">
         <div ref={ref} className="col-span-12 overflow-x-auto lg:col-span-9">
           <table className="w-full min-w-[560px] border-collapse text-left">
@@ -516,7 +474,6 @@ export default function Landing({ onLaunch }: { onLaunch: () => void }) {
         <RuleHeavy />
         <RasterSection />
         <TickerBand phrase="EVERY FILE A BUILDING" />
-        <SatzSection />
         <QuoteBand />
         <FarbenSection />
         <RuleHeavy />

@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 /** Sole backend dependency — everything goes through the Express API. */
-export const API_BASE = "http://localhost:5000/api/v1";
+export const API_BASE = import.meta.env.DEV ? "/api/v1" : `${location.origin}/api/v1`;
 const AUTH_URL = `${API_BASE}/auth`;
 
 export interface AuthUser {
