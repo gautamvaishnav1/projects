@@ -1,0 +1,891 @@
+{
+  "_readme": "DUMMY API PAYLOADS - Software World Backend. Share this single file with the frontend team. Every endpoint has a ready-made dummy request and response. Replace DUMMY ids with real ones returned by the server.",
+  "baseUrl": "http://localhost:5000",
+  "authHeader": {
+    "key": "Authorization",
+    "value": "Bearer <token>"
+  },
+  "dummyIds": {
+    "userId": "64f1a2b3c4d5e6f7a8b9c0d1",
+    "projectId": "64f2b3c4d5e6f7a8b9c0d1e2",
+    "analysisId": "64f3c4d5e6f7a8b9c0d1e2f3",
+    "jwtToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.DUMMY.PAYLOAD.SIGNATURE"
+  },
+  "endpoints": [
+    {
+      "name": "Health check",
+      "method": "GET",
+      "url": "http://localhost:5000/health",
+      "auth": false,
+      "request": null,
+      "response": {
+        "success": true,
+        "status": "ok",
+        "uptimeSeconds": 1234,
+        "db": "connected",
+        "timestamp": "2026-08-22T10:00:00.000Z"
+      }
+    },
+    {
+      "name": "Register (sends OTP to email)",
+      "method": "POST",
+      "url": "http://localhost:5000/api/v1/auth/register",
+      "auth": false,
+      "request": {
+        "name": "Gautam Vaishnav",
+        "email": "gautam@example.com",
+        "password": "passw0rd123"
+      },
+      "_note": "Password needs min 8 chars, at least one letter AND one number. devCode is ONLY returned when SMTP is not configured on the server (local dev).",
+      "response": {
+        "success": true,
+        "message": "Verification code sent to gautam@example.com. It expires in 10 minutes.",
+        "devCode": "483920"
+      }
+    },
+    {
+      "name": "Verify OTP (returns JWT)",
+      "method": "POST",
+      "url": "http://localhost:5000/api/v1/auth/verify-otp",
+      "auth": false,
+      "request": {
+        "email": "gautam@example.com",
+        "code": "483920"
+      },
+      "_note": "code is exactly 6 digits. Save data.token - it is needed for every private request.",
+      "response": {
+        "success": true,
+        "data": {
+          "user": {
+            "id": "64f1a2b3c4d5e6f7a8b9c0d1",
+            "email": "gautam@example.com",
+            "name": "Gautam Vaishnav",
+            "provider": "local",
+            "avatarUrl": null,
+            "isVerified": true
+          },
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.DUMMY.PAYLOAD.SIGNATURE"
+        }
+      }
+    },
+    {
+      "name": "Resend OTP",
+      "method": "POST",
+      "url": "http://localhost:5000/api/v1/auth/resend-otp",
+      "auth": false,
+      "request": {
+        "email": "gautam@example.com"
+      },
+      "_note": "60 second cooldown between resends -> 429 if too early.",
+      "response": {
+        "success": true,
+        "message": "New verification code sent to gautam@example.com.",
+        "devCode": "726104"
+      }
+    },
+    {
+      "name": "Login",
+      "method": "POST",
+      "url": "http://localhost:5000/api/v1/auth/login",
+      "auth": false,
+      "request": {
+        "email": "gautam@example.com",
+        "password": "passw0rd123"
+      },
+      "_note": "If account is not OTP-verified yet you get 403 with details.needsVerification=true (see errorExamples.unverifiedLogin).",
+      "response": {
+        "success": true,
+        "data": {
+          "user": {
+            "id": "64f1a2b3c4d5e6f7a8b9c0d1",
+            "email": "gautam@example.com",
+            "name": "Gautam Vaishnav",
+            "provider": "local",
+            "avatarUrl": null,
+            "isVerified": true
+          },
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.DUMMY.PAYLOAD.SIGNATURE"
+        }
+      }
+    },
+    {
+      "name": "Forgot password (sends reset OTP)",
+      "method": "POST",
+      "url": "http://localhost:5000/api/v1/auth/forgot-password",
+      "auth": false,
+      "request": {
+        "email": "gautam@example.com"
+      },
+      "_note": "Response is identical whether or not the account exists (anti-enumeration).",
+      "response": {
+        "success": true,
+        "message": "If that account exists, a reset code has been sent.",
+        "devCode": "551230"
+      }
+    },
+    {
+      "name": "Reset password with OTP",
+      "method": "POST",
+      "url": "http://localhost:5000/api/v1/auth/reset-password",
+      "auth": false,
+      "request": {
+        "email": "gautam@example.com",
+        "code": "551230",
+        "newPassword": "newpass9x"
+      },
+      "response": {
+        "success": true,
+        "data": {
+          "message": "Password updated. You can now log in."
+        }
+      }
+    },
+    {
+      "name": "Google OAuth - SPA login (ID token from Google Identity Services button)",
+      "method": "POST",
+      "url": "http://localhost:5000/api/v1/auth/google",
+      "auth": false,
+      "request": {
+        "credential": "<GOOGLE_ID_TOKEN_FROM_FRONTEND_BUTTON>"
+      },
+      "response": {
+        "success": true,
+        "data": {
+          "user": {
+            "id": "64f1a2b3c4d5e6f7a8b9c0d1",
+            "email": "gautam@gmail.com",
+            "name": "Gautam Vaishnav",
+            "provider": "google",
+            "avatarUrl": "https://lh3.googleusercontent.com/a/dummy.jpg",
+            "isVerified": true
+          },
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.DUMMY.PAYLOAD.SIGNATURE"
+        }
+      }
+    },
+    {
+      "name": "GitHub OAuth - SPA exchange code",
+      "method": "POST",
+      "url": "http://localhost:5000/api/v1/auth/github",
+      "auth": false,
+      "request": {
+        "code": "<CODE_FROM_GITHUB_REDIRECT>"
+      },
+      "_note": "Redirect flow alternative: open GET /api/v1/auth/github in browser; callback redirects to FRONTEND_URL/auth/success?token=<APP_JWT>",
+      "response": {
+        "success": true,
+        "data": {
+          "user": {
+            "id": "64f1a2b3c4d5e6f7a8b9c0d1",
+            "email": "gautam@users.noreply.github.com",
+            "name": "gautamvaishnav1",
+            "provider": "github",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/12345678",
+            "isVerified": true
+          },
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.DUMMY.PAYLOAD.SIGNATURE"
+        }
+      }
+    },
+    {
+      "name": "My profile",
+      "method": "GET",
+      "url": "http://localhost:5000/api/v1/auth/me",
+      "auth": true,
+      "request": null,
+      "response": {
+        "success": true,
+        "data": {
+          "user": {
+            "id": "64f1a2b3c4d5e6f7a8b9c0d1",
+            "email": "gautam@example.com",
+            "name": "Gautam Vaishnav",
+            "provider": "local",
+            "avatarUrl": null,
+            "isVerified": true
+          }
+        }
+      }
+    },
+    {
+      "name": "Create project (submit GitHub repo URL) -> returns PROJECT_ID",
+      "method": "POST",
+      "url": "http://localhost:5000/api/v1/projects",
+      "auth": true,
+      "request": {
+        "name": "FirstReactProject",
+        "description": "my react app",
+        "repoUrl": "https://github.com/gautamvaishnav1/firstReactProject"
+      },
+      "_note": "Accepted repoUrl forms: github.com/o/r | .../r.git | git@github.com:o/r.git | .../tree/<branch>. Copy data.project.id for analyze/architecture/chat calls.",
+      "response": {
+        "success": true,
+        "data": {
+          "project": {
+            "id": "64f2b3c4d5e6f7a8b9c0d1e2",
+            "name": "FirstReactProject",
+            "description": "my react app",
+            "repoUrl": "https://github.com/gautamvaishnav1/firstReactProject",
+            "ownerId": "64f1a2b3c4d5e6f7a8b9c0d1",
+            "lastAnalysisId": null,
+            "createdAt": "2026-08-22T10:05:00.000Z",
+            "updatedAt": "2026-08-22T10:05:00.000Z"
+          }
+        }
+      }
+    },
+    {
+      "name": "List my projects",
+      "method": "GET",
+      "url": "http://localhost:5000/api/v1/projects",
+      "auth": true,
+      "request": null,
+      "_note": "Shows only projects owned by the token's user.",
+      "response": {
+        "success": true,
+        "data": {
+          "projects": [
+            {
+              "id": "64f2b3c4d5e6f7a8b9c0d1e2",
+              "name": "FirstReactProject",
+              "description": "my react app",
+              "repoUrl": "https://github.com/gautamvaishnav1/firstReactProject",
+              "ownerId": "64f1a2b3c4d5e6f7a8b9c0d1",
+              "lastAnalysisId": "64f3c4d5e6f7a8b9c0d1e2f3",
+              "createdAt": "2026-08-22T10:05:00.000Z"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get project detail",
+      "method": "GET",
+      "url": "http://localhost:5000/api/v1/projects/:projectId",
+      "exampleUrl": "http://localhost:5000/api/v1/projects/64f2b3c4d5e6f7a8b9c0d1e2",
+      "auth": true,
+      "request": null,
+      "response": {
+        "success": true,
+        "data": {
+          "project": {
+            "id": "64f2b3c4d5e6f7a8b9c0d1e2",
+            "name": "FirstReactProject",
+            "description": "my react app",
+            "repoUrl": "https://github.com/gautamvaishnav1/firstReactProject",
+            "ownerId": "64f1a2b3c4d5e6f7a8b9c0d1",
+            "lastAnalysisId": "64f3c4d5e6f7a8b9c0d1e2f3",
+            "createdAt": "2026-08-22T10:05:00.000Z",
+            "updatedAt": "2026-08-22T10:06:00.000Z"
+          }
+        }
+      }
+    },
+    {
+      "name": "Delete project (+ its analyses)",
+      "method": "DELETE",
+      "url": "http://localhost:5000/api/v1/projects/:projectId",
+      "exampleUrl": "http://localhost:5000/api/v1/projects/64f2b3c4d5e6f7a8b9c0d1e2",
+      "auth": true,
+      "request": null,
+      "response": {
+        "success": true,
+        "message": "Project deleted"
+      }
+    },
+    {
+      "name": "Start repository analysis (async) -> returns ANALYSIS_ID",
+      "method": "POST",
+      "url": "http://localhost:5000/api/v1/projects/:projectId/analyze",
+      "exampleUrl": "http://localhost:5000/api/v1/projects/64f2b3c4d5e6f7a8b9c0d1e2/analyze",
+      "auth": true,
+      "request": null,
+      "_note": "Returns instantly (202). Progress arrives via Socket.IO room 'project:<projectId>'. Poll status endpoint if sockets are unavailable.",
+      "response": {
+        "success": true,
+        "message": "Analysis started",
+        "data": {
+          "analysisId": "64f3c4d5e6f7a8b9c0d1e2f3",
+          "projectId": "64f2b3c4d5e6f7a8b9c0d1e2",
+          "socketRoom": "project:64f2b3c4d5e6f7a8b9c0d1e2"
+        }
+      }
+    },
+    {
+      "name": "Analysis status (polling)",
+      "method": "GET",
+      "url": "http://localhost:5000/api/v1/analyses/:analysisId/status",
+      "exampleUrl": "http://localhost:5000/api/v1/analyses/64f3c4d5e6f7a8b9c0d1e2f3/status",
+      "auth": true,
+      "request": null,
+      "_note": "status is running | completed | failed. Poll every ~3s while running.",
+      "response": {
+        "success": true,
+        "data": {
+          "id": "64f3c4d5e6f7a8b9c0d1e2f3",
+          "status": "completed",
+          "durationMs": 2611,
+          "error": null
+        }
+      }
+    },
+    {
+      "name": "ARCHITECTURE - main payload for the 3D city (districts + buildings + roads)",
+      "method": "GET",
+      "url": "http://localhost:5000/api/v1/projects/:projectId/architecture",
+      "exampleUrl": "http://localhost:5000/api/v1/projects/64f2b3c4d5e6f7a8b9c0d1e2/architecture",
+      "auth": true,
+      "request": null,
+      "_note": "Spawn ONE building per components[].id at its position/size, draw ONE road per connections[].id along path[]. Backend guarantees: positions inside district bounds, no overlaps, path[0]==from.position, path[last]==to.position, deterministic sorting. metrics/latencyMs are zeroed until runtime telemetry exists.",
+      "response": {
+        "success": true,
+        "data": {
+          "analysisId": "64f3c4d5e6f7a8b9c0d1e2f3",
+          "projectId": "64f2b3c4d5e6f7a8b9c0d1e2",
+          "repoInfo": {
+            "fullName": "gautamvaishnav1/firstReactProject",
+            "defaultBranch": "main",
+            "primaryLanguage": "JavaScript",
+            "description": "My first React project",
+            "stars": 3,
+            "techStack": {
+              "languages": [
+                "JavaScript"
+              ],
+              "frontend": [
+                "react",
+                "react-dom",
+                "vite"
+              ],
+              "backend": [],
+              "database": [],
+              "authentication": [],
+              "tooling": [
+                "eslint"
+              ]
+            }
+          },
+          "stats": {
+            "filesConsidered": 16,
+            "filesParsedBabel": 16,
+            "filesFallback": 0,
+            "filesFailed": 0,
+            "totalFunctions": 20,
+            "totalClasses": 0,
+            "totalRoutes": 2,
+            "totalModels": 1,
+            "durationMs": 93,
+            "aiEngine": "heuristic",
+            "totalComponents": 8,
+            "totalConnections": 7
+          },
+          "districts": [
+            {
+              "id": "frontend-district",
+              "name": "Frontend District",
+              "position": {
+                "x": 0,
+                "y": 0,
+                "z": 140
+              },
+              "bounds": {
+                "width": 160,
+                "depth": 160
+              },
+              "color": "#00F0FF"
+            },
+            {
+              "id": "backend-district",
+              "name": "Backend District",
+              "position": {
+                "x": 0,
+                "y": 0,
+                "z": -140
+              },
+              "bounds": {
+                "width": 160,
+                "depth": 160
+              },
+              "color": "#A855F7"
+            },
+            {
+              "id": "data-district",
+              "name": "Data District",
+              "position": {
+                "x": -240,
+                "y": 0,
+                "z": 0
+              },
+              "bounds": {
+                "width": 160,
+                "depth": 160
+              },
+              "color": "#FF2E97"
+            },
+            {
+              "id": "external-district",
+              "name": "External District",
+              "position": {
+                "x": 240,
+                "y": 0,
+                "z": 0
+              },
+              "bounds": {
+                "width": 160,
+                "depth": 160
+              },
+              "color": "#FFB020"
+            }
+          ],
+          "architecture": {
+            "components": [
+              {
+                "id": "frontend",
+                "name": "Frontend App",
+                "type": "frontend",
+                "description": "14 UI component file(s) rendering the user interface.",
+                "district": "frontend-district",
+                "floor": 0,
+                "parent": null,
+                "children": [],
+                "belongsTo": [],
+                "position": {
+                  "x": -13,
+                  "y": 0,
+                  "z": 127
+                },
+                "size": {
+                  "width": 14.4,
+                  "height": 23,
+                  "depth": 14.4
+                },
+                "visual": {
+                  "primaryColor": "#00FFFF",
+                  "glowColor": "#00FFFF",
+                  "buildingStyle": "modern",
+                  "importance": 9,
+                  "complexity": 75
+                },
+                "files": [
+                  {
+                    "path": "src/App.jsx",
+                    "size": 1850,
+                    "lines": 65,
+                    "functions": [
+                      "App"
+                    ],
+                    "lastModified": null
+                  }
+                ],
+                "metrics": {
+                  "requestCount": 0,
+                  "avgLatencyMs": 0,
+                  "errorRate": 0,
+                  "lastActivity": null,
+                  "health": "healthy"
+                },
+                "dependencies": {
+                  "imports": [
+                    "axios",
+                    "react-router-dom"
+                  ],
+                  "uses": [
+                    "axiosapi-routes",
+                    "external-services"
+                  ]
+                }
+              },
+              {
+                "id": "user-model",
+                "name": "User Model",
+                "type": "model",
+                "description": "Mongoose model \"User\".",
+                "district": "data-district",
+                "floor": 0,
+                "parent": null,
+                "children": [],
+                "belongsTo": [],
+                "position": {
+                  "x": -240,
+                  "y": 0,
+                  "z": 0
+                },
+                "size": {
+                  "width": 8.8,
+                  "height": 16.6,
+                  "depth": 8.8
+                },
+                "visual": {
+                  "primaryColor": "#FF5CAD",
+                  "glowColor": "#FF5CAD",
+                  "buildingStyle": "datacenter",
+                  "importance": 3,
+                  "complexity": 20
+                },
+                "files": [
+                  {
+                    "path": "src/models/user.model.js",
+                    "size": 432,
+                    "lines": 18,
+                    "functions": [],
+                    "lastModified": null
+                  }
+                ],
+                "metrics": {
+                  "requestCount": 0,
+                  "avgLatencyMs": 0,
+                  "errorRate": 0,
+                  "lastActivity": null,
+                  "health": "healthy"
+                },
+                "dependencies": {
+                  "imports": [
+                    "mongoose"
+                  ],
+                  "uses": [
+                    "mongodb-database"
+                  ]
+                }
+              }
+            ],
+            "connections": [
+              {
+                "id": "conn-001",
+                "from": "frontend",
+                "to": "axiosapi-routes",
+                "label": "sends requests",
+                "type": "http",
+                "direction": "bidirectional",
+                "weight": 68,
+                "trafficVolume": "medium",
+                "protocol": "REST",
+                "latencyMs": 0,
+                "status": "healthy",
+                "path": [
+                  {
+                    "x": -13,
+                    "y": 0,
+                    "z": 127
+                  },
+                  {
+                    "x": 2.5,
+                    "y": 18,
+                    "z": 40.6
+                  },
+                  {
+                    "x": 13,
+                    "y": 0,
+                    "z": -153
+                  }
+                ],
+                "pathType": "curved",
+                "elevation": "bridge",
+                "visual": {
+                  "color": "#00FF88",
+                  "width": 3,
+                  "glowIntensity": 0.65
+                }
+              }
+            ]
+          },
+          "dependencies": {
+            "runtime": [
+              {
+                "name": "express",
+                "version": "^4.18.2",
+                "usedBy": [
+                  "axiosapi-routes",
+                  "auth-middleware"
+                ],
+                "hasVulnerabilities": false,
+                "lastUpdated": null
+              }
+            ],
+            "dev": [
+              "jest",
+              "nodemon"
+            ]
+          },
+          "changes": {
+            "lastAnalyzed": "2026-08-22T18:57:37.132Z",
+            "filesChanged": 3,
+            "componentsAffected": [
+              "axiosapi-controller",
+              "axiosapi-routes",
+              "frontend"
+            ],
+            "newConnections": 0,
+            "removedConnections": 0,
+            "previousAnalysisId": "64f2c3d4e5f6a7b8c9d0e1f2"
+          }
+        }
+      }
+    },
+    {
+      "name": "Full analysis detail (architecture + metadata + failures)",
+      "method": "GET",
+      "url": "http://localhost:5000/api/v1/analyses/:analysisId",
+      "exampleUrl": "http://localhost:5000/api/v1/analyses/64f3c4d5e6f7a8b9c0d1e2f3",
+      "auth": true,
+      "request": null,
+      "_note": "metadata contains extracted code facts (routes/models/functions...) used by AI. No ASTs ever.",
+      "response": {
+        "success": true,
+        "data": {
+          "id": "64f3c4d5e6f7a8b9c0d1e2f3",
+          "projectId": "64f2b3c4d5e6f7a8b9c0d1e2",
+          "status": "completed",
+          "stats": {
+            "filesConsidered": 16,
+            "filesParsedBabel": 16,
+            "aiEngine": "heuristic"
+          },
+          "failures": [],
+          "metadata": {
+            "project": {
+              "name": "firstReactProject",
+              "repo": "gautamvaishnav1/firstReactProject"
+            },
+            "routes": [
+              {
+                "method": "GET",
+                "path": "/all",
+                "handler": "getAllCountries",
+                "file": "src/controllers/axiosApi.controller.js"
+              }
+            ],
+            "models": [
+              {
+                "name": "User",
+                "file": "src/models/user.model.js",
+                "fields": [
+                  "email",
+                  "passwordHash"
+                ]
+              }
+            ]
+          },
+          "architecture": {
+            "components": [],
+            "connections": []
+          },
+          "createdAt": "2026-08-22T10:07:00.000Z",
+          "completedAt": "2026-08-22T10:07:03.000Z"
+        }
+      }
+    },
+    {
+      "name": "AI Chat about architecture -> also emits character:explain",
+      "method": "POST",
+      "url": "http://localhost:5000/api/v1/projects/:projectId/chat",
+      "exampleUrl": "http://localhost:5000/api/v1/projects/64f2b3c4d5e6f7a8b9c0d1e2/chat",
+      "auth": true,
+      "request": {
+        "question": "How does authentication work?"
+      },
+      "_note": "targetComponent may be null. path[] is a walk over component ids - animate the character along it in order.",
+      "response": {
+        "success": true,
+        "data": {
+          "answer": "Authentication starts at the auth routes which validate the incoming JWT through the auth middleware before delegating to controllers. User credentials are verified against bcrypt hashes stored via the user model.",
+          "targetComponent": "auth-middleware",
+          "path": [
+            "frontend",
+            "axiosapi-routes",
+            "auth-middleware"
+          ],
+          "relatedComponents": [
+            "axiosapi-routes",
+            "user-service-svc",
+            "user-model"
+          ]
+        }
+      }
+    }
+  ],
+  "errorFormat": {
+    "_note": "Every failed response uses this shape.",
+    "example": {
+      "success": false,
+      "message": "Validation failed",
+      "details": [
+        {
+          "field": "email",
+          "message": "Must be a valid email"
+        }
+      ]
+    },
+    "unverifiedLogin": {
+      "success": false,
+      "message": "Please verify your email first — we sent you a fresh code.",
+      "details": {
+        "needsVerification": true,
+        "email": "gautam@example.com",
+        "devCode": "483920"
+      }
+    },
+    "statusCodes": {
+      "400": "validation / malformed JSON / bad OTP",
+      "401": "missing or expired JWT",
+      "403": "not your resource / email unverified",
+      "404": "route / project / analysis not found",
+      "409": "duplicate email or project URL / analysis already running",
+      "429": "rate limited",
+      "502": "GitHub or LLM upstream failure"
+    }
+  },
+  "socketIO": {
+    "connectUrl": "http://localhost:5000",
+    "handshakeOptions": {
+      "auth": {
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.DUMMY.PAYLOAD.SIGNATURE"
+      }
+    },
+    "clientEmits": [
+      {
+        "event": "project:join",
+        "payload": {
+          "projectId": "64f2b3c4d5e6f7a8b9c0d1e2"
+        },
+        "ack": {
+          "ok": true,
+          "room": "project:64f2b3c4d5e6f7a8b9c0d1e2"
+        }
+      },
+      {
+        "event": "character:move",
+        "payload": {
+          "projectId": "64f2b3c4d5e6f7a8b9c0d1e2",
+          "fromComponentId": "frontend",
+          "toComponentId": "axiosapi-routes"
+        },
+        "ack": {
+          "ok": true
+        },
+        "_note": "Server validates toComponentId exists in latest architecture."
+      },
+      {
+        "event": "character:explain",
+        "payload": {
+          "projectId": "64f2b3c4d5e6f7a8b9c0d1e2",
+          "path": [
+            "frontend",
+            "axiosapi-routes"
+          ]
+        },
+        "ack": {
+          "ok": true,
+          "path": [
+            "frontend",
+            "axiosapi-routes"
+          ]
+        }
+      }
+    ],
+    "serverEmits": [
+      {
+        "event": "analysis:started",
+        "payload": {
+          "analysisId": "64f3c4d5e6f7a8b9c0d1e2f3",
+          "projectId": "64f2b3c4d5e6f7a8b9c0d1e2",
+          "repoUrl": "https://github.com/gautamvaishnav1/firstReactProject"
+        }
+      },
+      {
+        "event": "analysis:progress",
+        "payload": {
+          "analysisId": "64f3c4d5e6f7a8b9c0d1e2f3",
+          "projectId": "64f2b3c4d5e6f7a8b9c0d1e2",
+          "step": "parse",
+          "percent": 42,
+          "current": 7,
+          "total": 16,
+          "message": "Parsing files 7/16"
+        }
+      },
+      {
+        "event": "analysis:completed",
+        "payload": {
+          "analysisId": "64f3c4d5e6f7a8b9c0d1e2f3",
+          "projectId": "64f2b3c4d5e6f7a8b9c0d1e2",
+          "stats": {
+            "filesConsidered": 16,
+            "filesParsedBabel": 16,
+            "filesFallback": 0,
+            "routes": 2,
+            "models": 1,
+            "durationMs": 93
+          },
+          "architecture": {
+            "componentCount": 8,
+            "connectionCount": 7,
+            "components": [
+              {
+                "id": "frontend",
+                "name": "Frontend App",
+                "type": "frontend",
+                "district": "frontend-district",
+                "position": {
+                  "x": -13,
+                  "y": 0,
+                  "z": 127
+                }
+              }
+            ]
+          },
+          "engine": "heuristic",
+          "districts": [
+            {
+              "id": "frontend-district",
+              "color": "#00F0FF"
+            },
+            {
+              "id": "backend-district",
+              "color": "#A855F7"
+            }
+          ],
+          "changes": {
+            "previousAnalysisId": "64f2c3d4e5f6a7b8c9d0e1f2",
+            "filesChanged": 3,
+            "newConnections": 0,
+            "removedConnections": 0
+          }
+        }
+      },
+      {
+        "event": "analysis:failed",
+        "payload": {
+          "analysisId": "64f3c4d5e6f7a8b9c0d1e2f3",
+          "projectId": "64f2b3c4d5e6f7a8b9c0d1e2",
+          "error": "GitHub repository not found (or private without a token)"
+        }
+      },
+      {
+        "event": "character:move",
+        "payload": {
+          "projectId": "64f2b3c4d5e6f7a8b9c0d1e2",
+          "fromComponentId": "frontend",
+          "toComponentId": "axiosapi-routes",
+          "requestedBy": "64f1a2b3c4d5e6f7a8b9c0d1"
+        }
+      },
+      {
+        "event": "character:explain",
+        "payload": {
+          "projectId": "64f2b3c4d5e6f7a8b9c0d1e2",
+          "question": "How does authentication work?",
+          "targetComponent": "auth-middleware",
+          "path": [
+            "frontend",
+            "axiosapi-routes",
+            "auth-middleware"
+          ],
+          "relatedComponents": [
+            "user-model"
+          ]
+        }
+      }
+    ],
+    "_note": "Backend sends SEMANTIC component ids/paths only. The frontend maps id -> its own 3D coordinates and animates the character."
+  }
+}

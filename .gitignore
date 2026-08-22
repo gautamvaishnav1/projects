@@ -1,3 +1,34 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+dist-ssr/
+build/
+
+# logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# env & local
+.env
+.env.*
+*.local
+
+# editor / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# project-local backups & scratch dirs
+_legacy_src/
+auth-server/data/
+*.tsbuildinfo
 
 # raw asset source of truth (served copies live in frontend/public/models)
 frontend/Starlight-res/_packs/

@@ -1,0 +1,11 @@
+node_modules
+dist
+.env
+.env.*
+!.env.example
+auth-smoke.log
+smoke-*
+tests
+docs
+*.md
+.git

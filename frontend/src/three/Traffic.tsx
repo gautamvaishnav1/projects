@@ -5,15 +5,12 @@ import * as THREE from "three";
 import type { CityLayout } from "../lib/layout";
 import { useCity, followTarget } from "../store/useCity";
 import { ENV } from "./env";
-import { SAMPLE_CITY } from "../data/sampleCity";
 import { VEHICLE_FAST, VEHICLE_MED, VEHICLE_SLOW, VEHICLE_HERO, pick } from "./assets";
-
-const SAMPLE_FLOWS = SAMPLE_CITY.flows as Record<string, string[]>;
 
 const SPEED = { fast: 0.1, medium: 0.045, slow: 0.018 };
 const LAT_COLOR = { fast: "#22c55e", medium: "#eab308", slow: "#ef4444" };
 
-/** build a curve from a CITY.flows id chain; missing ids are warned and skipped */
+/** build a curve from a flow id chain; missing ids are warned and skipped */
 function makeCurve(L: CityLayout, ids: string[]): THREE.CatmullRomCurve3 | null {
   const pts = ids.filter(Boolean).map((id) => {
     const b = L.byId.get(id);
@@ -80,7 +77,6 @@ function Car({ curve, offset, latencyKey, hero, stuck, color }: any) {
     <group ref={ref}>
       <GltfCar url={url} color={typeof color === "string" && color.startsWith("#") ? color : undefined} />
       <Headlights />
-      {/* emissive beacon so the car reads at night */}
       <mesh position={[0, 1.1, -0.6]}><sphereGeometry args={[0.07, 8, 8]} /><meshStandardMaterial color={LAT_COLOR[cur]} emissive={LAT_COLOR[cur]} emissiveIntensity={0.6 + ENV.night * 3} /></mesh>
     </group>
   );
@@ -101,7 +97,6 @@ function Truck({ curve, offset }: { curve: THREE.CatmullRomCurve3; offset: numbe
   return (
     <group ref={ref}>
       <GltfCar url={url} />
-      {/* emerald cargo box */}
       <mesh position={[0, 0.85, -0.35]}>
         <boxGeometry args={[1.15, 0.9, 1.9]} />
         <meshStandardMaterial color="#10b981" emissive="#10b981" emissiveIntensity={0.25} roughness={0.6} />
@@ -112,19 +107,22 @@ function Truck({ curve, offset }: { curve: THREE.CatmullRomCurve3; offset: numbe
 }
 
 export function Traffic({ L }: { L: CityLayout }) {
-  const traffic = useCity((s) => s.traffic), failing = useCity((s) => s.failing);
+  const traffic = useCity((s) => s.traffic);
+  const failing = useCity((s) => s.failing);
+  const failingId = useCity((s) => s.failingId);
 
-  // curves built from CITY.flows — never hardcoded ids here
+  // curves built reactively from the active city's flows
+  const flows = useCity((s) => s.city.flows);
   const curves = useMemo(() => {
     const out: Record<string, THREE.CatmullRomCurve3 | null> = {};
-    for (const [name, ids] of Object.entries(SAMPLE_FLOWS)) out[name] = makeCurve(L, ids as string[]);
+    for (const [name, ids] of Object.entries(flows ?? {})) out[name] = makeCurve(L, ids as string[]);
     return out;
-  }, [L]);
+  }, [flows, L]);
 
   // followTarget ghost fix: deactivate when this layer unmounts
   useEffect(() => () => { followTarget.active = false; }, []);
 
-  const pay = L.byId.get("be-payctrl")!;
+  const failB = failingId ? L.byId.get(failingId) : L.byId.get("be-payctrl");
   return (
     <group>
       {traffic && <>
@@ -135,11 +133,18 @@ export function Traffic({ L }: { L: CityLayout }) {
         {curves.payment && <Truck curve={curves.payment} offset={0.45} />}
         {curves.cart && <Truck curve={curves.cart} offset={0.15} />}
       </>}
-      {failing && (
-        <group position={[pay.pos[0], 0, pay.pos[2]]}>
+      {failing && failB && (
+        <group position={[failB.pos[0], 0, failB.pos[2]]}>
           <mesh position={[0, 7, 0]}><coneGeometry args={[0.8, 1.6, 4]} /><meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={2} /></mesh>
-          <Html center position={[0, 9, 0]}><div className="px-2 py-1 rounded-lg bg-red-600/90 text-white text-xs font-bold whitespace-nowrap backdrop-blur">⚠ 500 — {pay.name}</div></Html>
+          <Html center position={[0, 9, 0]}><div className="px-2 py-1 rounded-lg bg-red-600/90 text-white text-xs font-bold whitespace-nowrap backdrop-blur">⚠ 500 — {failB.name}</div></Html>
         </group>
+      )}
+      {/* roadblock on the lane in front of the Controllers district gate */}
+      {failing && (
+        <mesh position={[43, 0.55, -20]}>
+          <boxGeometry args={[6.5, 1, 0.5]} />
+          <meshStandardMaterial color="#f97316" emissive="#f97316" emissiveIntensity={0.7} />
+        </mesh>
       )}
     </group>
   );

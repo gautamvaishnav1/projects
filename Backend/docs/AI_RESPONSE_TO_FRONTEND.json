@@ -1,0 +1,108 @@
+{
+  "_readme": "FILE 2 of 2 — 'JSON AI GIVES ME' + 'JSON I SEND TO FRONTEND'. Shows (A) the raw JSON the AI replies with, and (B) the validated, wrapped response this backend sends to the frontend. Built in src/modules/ai/chat.controller.ts, src/modules/analysis/*, wrapped as { success, data }. Example repo: github.com/hagopj13/node-express-mongoose-boilerplate (MERN).",
+
+  "part_A_rawAiReply_analyze": {
+    "_note": "What the model returns for the analyze call. Parsed by extractJson() then validated by architecture.schema.ts — invalid shapes are retried once, then fall back to heuristic mode.",
+    "example": {
+      "components": [
+        { "id": "frontend", "name": "Frontend App", "type": "frontend", "description": "React UI rendering the user interface.", "files": ["client/src/App.js"] },
+        { "id": "auth-routes", "name": "Auth Routes", "type": "routes", "description": "HTTP endpoints for authentication.", "files": ["src/routes/auth.routes.ts"] },
+        { "id": "auth-controller", "name": "Auth Controller", "type": "controller", "description": "Registers, logs in and OTP-verifies users.", "files": ["src/controllers/auth.controller.ts"] },
+        { "id": "auth-middleware", "name": "Auth Middleware", "type": "auth", "description": "Validates JWTs before protected handlers run.", "files": ["src/middleware/auth.ts"] },
+        { "id": "user-model", "name": "User Model", "type": "model", "description": "Mongoose User model storing email, hashed password, role.", "files": ["src/models/user.model.ts"] },
+        { "id": "mongodb-database", "name": "MongoDB Database", "type": "database", "description": "Persistence layer storing documents via Mongoose." }
+      ],
+      "connections": [
+        { "from": "frontend", "to": "auth-routes", "label": "sends requests" },
+        { "from": "auth-routes", "to": "auth-controller", "label": "delegates to" },
+        { "from": "auth-routes", "to": "auth-middleware", "label": "guards" },
+        { "from": "auth-controller", "to": "user-model", "label": "uses" },
+        { "from": "user-model", "to": "mongodb-database", "label": "persists to" }
+      ]
+    }
+  },
+
+  "part_B_toFrontend_architecture": {
+    "_endpoint": "GET /api/v1/projects/:id/architecture",
+    "_headers": "Authorization: Bearer <JWT from login>",
+    "_status": 200,
+    "_note": "This is THE main payload the frontend consumes to build the 3D map.",
+    "body": {
+      "success": true,
+      "data": {
+        "analysisId": "6a89a1d5ed27e14152cf46ef",
+        "repoInfo": { "fullName": "hagopj13/node-express-mongoose-boilerplate", "defaultBranch": "master", "primaryLanguage": "JavaScript", "stars": 4900 },
+        "stats": { "filesConsidered": 60, "filesParsedBabel": 59, "filesFallback": 1, "totalRoutes": 25, "totalModels": 6, "aiEngine": "llm" },
+        "architecture": {
+          "components": [
+            { "id": "frontend", "name": "Frontend App", "type": "frontend", "description": "React UI rendering the user interface.", "files": ["client/src/App.js"] },
+            { "id": "auth-routes", "name": "Auth Routes", "type": "routes", "description": "HTTP endpoints for authentication.", "files": ["src/routes/auth.routes.ts"] },
+            { "id": "auth-controller", "name": "Auth Controller", "type": "controller", "description": "Registers, logs in and OTP-verifies users.", "files": ["src/controllers/auth.controller.ts"] },
+            { "id": "auth-middleware", "name": "Auth Middleware", "type": "auth", "description": "Validates JWTs before protected handlers run.", "files": ["src/middleware/auth.ts"] },
+            { "id": "user-model", "name": "User Model", "type": "model", "description": "Mongoose User model storing email, hashed password, role.", "files": ["src/models/user.model.ts"] },
+            { "id": "mongodb-database", "name": "MongoDB Database", "type": "database", "description": "Persistence layer storing documents via Mongoose." }
+          ],
+          "connections": [
+            { "from": "frontend", "to": "auth-routes", "label": "sends requests" },
+            { "from": "auth-routes", "to": "auth-controller", "label": "delegates to" },
+            { "from": "auth-routes", "to": "auth-middleware", "label": "guards" },
+            { "from": "auth-controller", "to": "user-model", "label": "uses" },
+            { "from": "user-model", "to": "mongodb-database", "label": "persists to" }
+          ]
+        }
+      }
+    },
+    "frontendGuarantees": [
+      "components[].type ∈ frontend|routes|controller|service|model|database|middleware|auth|integration|config|external|other",
+      "ids are stable kebab-case slugs, unique within one analysis",
+      "every connection.from/to references an existing component id"
+    ]
+  },
+
+  "part_B_toFrontend_chat": {
+    "_endpoint": "POST /api/v1/projects/:id/chat",
+    "_requestBodyFromFrontend": { "question": "How does authentication work?" },
+    "_headers": "Authorization: Bearer <JWT>",
+    "_status": 200,
+    "_note": "AI prose + TARGET_COMPONENT + PATH lines are parsed; every id is re-validated against stored architecture before sending. Also emitted over Socket.IO as event 'character:explain'.",
+    "body": {
+      "success": true,
+      "data": {
+        "answer": "Authentication starts at auth-routes, which delegate register/login requests to the auth controller. Protected routes pass through auth middleware that validates the JWT before the handler runs. The controller verifies credentials against the user model, which persists accounts to MongoDB.",
+        "targetComponent": "auth-middleware",
+        "path": ["frontend", "auth-routes", "auth-middleware"],
+        "relatedComponents": ["frontend", "auth-routes", "auth-controller", "user-model"]
+      }
+    },
+    "fieldRules": [
+      "answer: string (2-5 sentences)",
+      "targetComponent: component id or null",
+      "path: ordered walk of component ids (drives character animation in 3D map)",
+      "relatedComponents: neighbor ids, all guaranteed to exist in latest architecture"
+    ]
+  },
+
+  "part_B_socketEvent_characterExplain": {
+    "_event": "'character:explain' on room project:<projectId> (Socket.IO)",
+    "payload": {
+      "projectId": "6a89a019ed27e14152cf46ec",
+      "question": "How does authentication work?",
+      "targetComponent": "auth-middleware",
+      "path": ["frontend", "auth-routes", "auth-middleware"],
+      "relatedComponents": ["frontend", "auth-routes", "auth-controller", "user-model"]
+    }
+  },
+
+  "errorFormat_allEndpoints": {
+    "_statusExample": [400, 401, 403, 404, 409, 422, 429, 502],
+    "body": {
+      "success": false,
+      "message": "Validation failed",
+      "details": [{ "field": "question", "message": "String must contain at least 2 character(s)" }]
+    },
+    "aiSpecificErrors": {
+      "502": "LLM upstream failed (bad key / provider down) — chat silently falls back to heuristic answer instead",
+      "422": "AI output failed schema validation after retry"
+    }
+  }
+}

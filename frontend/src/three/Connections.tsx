@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { LAYOUT, CITY_EDGES } from "../lib/city";
+import type { CityLayout } from "../lib/layout";
 import type { EdgeNode } from "../types";
 import { useCity } from "../store/useCity";
 
@@ -11,7 +11,7 @@ const EDGE_COLOR: Record<EdgeNode["kind"], string> = {
   query: "#34d399",
 };
 
-function Arc({ edge, phase }: { edge: EdgeNode; phase: number }) {
+function Arc({ edge, layout, phase }: { edge: EdgeNode; layout: CityLayout; phase: number }) {
   const selectedId = useCity((s) => s.selectedId);
   const linksOn = useCity((s) => s.links);
   const group = useRef<THREE.Group>(null);
@@ -20,18 +20,19 @@ function Arc({ edge, phase }: { edge: EdgeNode; phase: number }) {
   const active = selectedId === edge.from || selectedId === edge.to;
 
   const geo = useMemo(() => {
-    const a = LAYOUT.byId.get(edge.from)!;
-    const b = LAYOUT.byId.get(edge.to)!;
+    const a = layout.byId.get(edge.from);
+    const b = layout.byId.get(edge.to);
+    if (!a || !b) return null;
     const pa = new THREE.Vector3(a.pos[0], a.h + 1, a.pos[2]);
     const pb = new THREE.Vector3(b.pos[0], b.h + 1, b.pos[2]);
     const mid = pa.clone().add(pb).multiplyScalar(0.5);
     mid.y += pa.distanceTo(pb) * 0.22 + 3;
     return new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(pa, mid, pb), 32, 0.09, 5, false);
-  }, [edge]);
-  useEffect(() => () => geo.dispose(), [geo]);
+  }, [edge, layout]);
+  useEffect(() => () => geo?.dispose(), [geo]);
 
   useFrame(({ clock }) => {
-    if (!group.current) return;
+    if (!group.current || !geo) return;
     const t = clock.elapsedTime;
     group.current.visible = linksOn || active;
     if (mat.current) mat.current.opacity = active ? 0.85 : 0.14 + Math.sin(t * 1.6 + phase) * 0.05;
@@ -44,6 +45,8 @@ function Arc({ edge, phase }: { edge: EdgeNode; phase: number }) {
       packet.current.visible = false;
     }
   });
+
+  if (!geo) return null;
 
   return (
     <group ref={group}>
@@ -66,11 +69,11 @@ function Arc({ edge, phase }: { edge: EdgeNode; phase: number }) {
   );
 }
 
-export function Connections() {
+export function Connections({ layout, edges }: { layout: CityLayout; edges: EdgeNode[] }) {
   return (
     <group>
-      {CITY_EDGES.map((e, i) => (
-        <Arc key={`${e.from}-${e.to}-${e.kind}`} edge={e} phase={i * 0.37} />
+      {edges.map((e, i) => (
+        <Arc key={`${e.from}-${e.to}-${e.kind}`} edge={e} layout={layout} phase={i * 0.37} />
       ))}
     </group>
   );

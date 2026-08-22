@@ -2,11 +2,11 @@ import { Suspense, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Environment } from "@react-three/drei";
 import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
-import { LAYOUT } from "../lib/city";
+import { useCityLayout } from "../lib/city";
 import { useCity } from "../store/useCity";
 import { Building, District, NightMaterials } from "./Buildings";
 import { Ground, Roads, Underground, Decor, Links } from "./Infrastructure";
-import { Traffic } from "./Traffic.tsx";
+import { Traffic } from "./Traffic";
 import { People } from "./People";
 import { River } from "./Water";
 import { Atmosphere } from "./Atmosphere";
@@ -14,6 +14,7 @@ import { Precipitation } from "./Precipitation";
 import { Lightning } from "./Lightning";
 import { Wet } from "./Wet";
 import { CameraRig } from "./CameraRig";
+import { Connections } from "./Connections";
 import { HDRI_DAY, HDRI_NIGHT, preloadAll } from "./assets";
 
 /** swaps HDRI by time of day — venice_sunset (day) ↔ dikhololo_night */
@@ -24,12 +25,15 @@ function SkyEnvironment() {
   return <Environment key={files[0]} files={files} background={false} environmentIntensity={day ? 0.55 : 0.25} />;
 }
 
-export function usePreload() {
+/** kick off GLB preloading once the module loads */
+function usePreload() {
   useEffect(() => { preloadAll(); }, []);
 }
 
 export function CityScene() {
   usePreload();
+  const L = useCityLayout();
+  const cityEdges = useCity((s) => s.city.edges);
   return (
     <Canvas shadows camera={{ position: [0, 70, 90], fov: 45 }} onPointerMissed={() => useCity.getState().select(null)}>
       <color attach="background" args={["#070b18"]} />
@@ -38,17 +42,18 @@ export function CityScene() {
       <Suspense fallback={null}><SkyEnvironment /></Suspense>
       <Ground />
       <River />
-      <Roads L={LAYOUT} />
-      <Underground L={LAYOUT} />
-      <Decor L={LAYOUT} />
-      <Links L={LAYOUT} />
-      {LAYOUT.districts.map((d) => <District key={d.id} d={d} />)}
-      {LAYOUT.buildings.map((b) => <Building key={b.id} b={b} />)}
-      <Traffic L={LAYOUT} />
-      <People L={LAYOUT} />
+      <Roads L={L} />
+      <Underground L={L} />
+      <Decor L={L} />
+      <Links L={L} />
+      {L.districts.map((d) => <District key={d.id} d={d} />)}
+      {L.buildings.map((b) => <Building key={b.id} b={b} />)}
+      <Connections layout={L} edges={cityEdges} />
+      <Traffic L={L} />
+      <People L={L} />
       <Precipitation />
-      <Lightning target={[LAYOUT.byId.get("be-payctrl")!.pos[0], LAYOUT.byId.get("be-payctrl")!.pos[2]]} />
-      <Wet L={LAYOUT} />
+      <Lightning target={[L.byId.get("be-payctrl")?.pos[0] ?? 44, L.byId.get("be-payctrl")?.pos[2] ?? -23]} />
+      <Wet L={L} />
       <Atmosphere />
       <NightMaterials />
       <CameraRig />
