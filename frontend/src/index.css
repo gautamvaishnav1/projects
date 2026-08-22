@@ -549,6 +549,15 @@ body {
   }
 }
 
+/* clock colon blinks each second — printed timetable pulse */
+@keyframes colon-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.15; }
+}
+.clock-colon {
+  animation: colon-blink 1s steps(1, end) infinite;
+}
+
 /* ── auth card — printed identity card ── */
 @keyframes card-print {
   from { opacity: 0; transform: translateY(10px) scale(0.985); }

@@ -96,9 +96,12 @@ export function FolioBar({ mark, onLaunch }: { mark: string; onLaunch: () => voi
           <span aria-hidden className="misreg inline-block h-3 w-3 shrink-0 rounded-full bg-signal" />
           <p className="truncate text-[11px] font-bold uppercase tracking-[0.22em]">{mark}</p>
         </div>
-        <button type="button" onClick={onLaunch} className="btn-print solid !px-4 !py-2 !text-[10px]">
-          Launch ▸
-        </button>
+        <div className="flex items-center gap-5">
+          <FolioClock />
+          <button type="button" onClick={onLaunch} className="btn-print solid !px-4 !py-2 !text-[10px]">
+            Launch ▸
+          </button>
+        </div>
       </div>
       <div aria-hidden className="h-[2px] w-full bg-black-ink/10">
         <div className="h-full origin-left bg-signal" style={{ transform: `scaleX(${p})` }} />
@@ -249,5 +252,26 @@ export function TickerBand({ phrase }: { phrase: string }) {
         ))}
       </div>
     </div>
+  );
+}
+
+/* ── folio clock — compact live time beside Launch ───────────────── */
+export function FolioClock() {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(new Date()), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return (
+    <span className="hidden items-baseline gap-1.5 font-mono text-[11px] font-bold tabular-nums text-black-ink/70 sm:flex">
+      <span aria-hidden className="misreg inline-block h-1.5 w-1.5 rounded-full bg-signal" />
+      {p(now.getHours())}
+      <span className="clock-colon">:</span>
+      {p(now.getMinutes())}
+      <span className="clock-colon">:</span>
+      {p(now.getSeconds())}
+      <span className="caption-caps ml-1 text-black-ink/45">LOCAL</span>
+    </span>
   );
 }
