@@ -567,6 +567,13 @@ body {
   animation: stamp-in 0.28s cubic-bezier(0.2, 1.4, 0.4, 1) both;
 }
 /* otp boxes: filled digit = inked */
+.otp-box {
+  color: #141414;
+}
+.otp-box:not(:placeholder-shown) {
+  background: rgba(20, 20, 20, 0.06);
+  border-color: #141414;
+}
 .otp-box:focus-visible {
   outline: 2px solid #e30613;
   outline-offset: 2px;

@@ -190,7 +190,7 @@ function AuthInner({ onClose, onSuccess }: { onClose: () => void; onSuccess: () 
                 autoComplete={i === 0 ? "one-time-code" : "off"}
                 maxLength={6}
                 aria-label={`digit ${i + 1}`}
-                className="otp-box w-full border-[1.5px] border-black-ink bg-paper-deep pb-2 pt-3 text-center font-mono text-xl font-bold tabular-nums outline-none focus:border-signal focus:bg-paper sm:text-2xl"
+                className="otp-box w-full border-[1.5px] border-black-ink bg-transparent pb-2 pt-3 text-center font-mono text-xl font-black text-black-ink caret-signal outline-none placeholder:text-transparent focus:border-signal sm:text-2xl [-moz-appearance:textfield]"
               />
             ))}
           </div>

@@ -13,8 +13,7 @@ const BRAND = {
 
 const INDEX = [
   { n: "01", t: "SYSTEM", meta: "12 COLUMNS", id: "raster" },
-  { n: "02", t: "INKS", meta: "3 PRESS COLORS", id: "farben" },
-  { n: "03", t: "LIVE DATA", meta: "DEPARTURES BOARD", id: "zeit" },
+  { n: "02", t: "LIVE DATA", meta: "DEPARTURES BOARD", id: "zeit" },
 ];
 
 const SPECS: Array<[string, string]> = [
@@ -23,7 +22,6 @@ const SPECS: Array<[string, string]> = [
   ["PROBLEM", "MONTHS-LONG ONBOARDING · BLIND REFACTORS"],
   ["SOLUTION", "ONE MAP, DAY ONE"],
   ["USERS", "INTERNS · DEVS · SENIORS"],
-  ["INKS", "3"],
 ];
 
 /* ── helpers ─────────────────────────────────────────────────────── */
@@ -226,44 +224,6 @@ function QuoteBand() {
         </blockquote>
       </div>
     </aside>
-  );
-}
-
-/* ── 03 INKS — three flat inks, one intervention ─────────────────── */
-
-const SWATCHES = [
-  { name: "PAPER", hex: "#F2EFE3", note: "THE CARRIER SURFACE — UNPRINTED", cls: "bg-paper border border-black-ink/40", span: "lg:col-span-5", h: "h-44" },
-  { name: "BLACK", hex: "#141414", note: "TEXT, LINES, DEPTH", cls: "bg-black-ink", span: "lg:col-span-4", h: "h-28" },
-  { name: "SIGNAL RED", hex: "#E30613", note: "SIGNALS ONLY", cls: "bg-signal misreg", span: "lg:col-span-3", h: "h-20" },
-];
-
-function FarbenSection() {
-  return (
-    <section id="farben" className="sheet relative scroll-mt-8 py-20 md:py-28">
-      <span aria-hidden className="misreg absolute -top-10 right-6 hidden h-40 w-40 rounded-full bg-signal lg:block xl:right-24" />
-
-      <SecHead n="02" t="INKS" meta="FLAT COLORS — NO GRADIENTS" />
-      <div className="grid grid-cols-12 items-end gap-x-6 gap-y-10">
-        {SWATCHES.map((s, i) => (
-          <div key={s.name} className={`col-span-12 sm:col-span-4 ${s.span}`}>
-            <Reveal delay={i * 120}>
-              <div aria-hidden className={`${s.cls} ${s.h} w-full`} />
-            </Reveal>
-            <div className="mt-4 flex items-baseline justify-between gap-4 border-t border-black-ink/25 pt-3">
-              <p className="text-xs font-bold uppercase tracking-[0.18em]">{s.name}</p>
-              <p className="caption-caps text-black-ink/55 tabular-nums">{s.hex}</p>
-            </div>
-            <p className="caption-caps mt-1.5 text-black-ink/45">{s.note}</p>
-          </div>
-        ))}
-      </div>
-      <Reveal delay={200}>
-        <p className="caption-caps mt-14 max-w-lg leading-relaxed text-black-ink/55">
-          PRINTING: OFFSET. THREE COLORS ARE USED — CREAM, BLACK, SIGNAL RED.
-          THE RED DISC IS REGISTERED ≈0.5 MM OUT OF REGISTER — DELIBERATELY.
-        </p>
-      </Reveal>
-    </section>
   );
 }
 
@@ -475,7 +435,6 @@ export default function Landing({ onLaunch }: { onLaunch: () => void }) {
         <RasterSection />
         <TickerBand phrase="EVERY FILE A BUILDING" />
         <QuoteBand />
-        <FarbenSection />
         <RuleHeavy />
         <ZeitSection />
         <TickerBand phrase="CODE BECOMES CITY" />

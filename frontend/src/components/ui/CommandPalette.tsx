@@ -70,10 +70,10 @@ function PaletteInner({ onClose, items }: { onClose: () => void; items: PaletteI
         transition={{ type: "spring", stiffness: 300, damping: 28 }}
         onClick={(e: React.MouseEvent) => e.stopPropagation()}
         onKeyDown={onKeyDown}
-        className="cc-glass w-[min(560px,92vw)] overflow-hidden rounded-2xl shadow-2xl"
+        className="w-[min(560px,92vw)] overflow-hidden rounded-none border-[1.5px] border-black-ink bg-paper text-black-ink shadow-[8px_8px_0_rgba(20,20,20,.35)]"
       >
         <div className="flex items-center gap-3 border-b border-white/10 px-4 py-3">
-          <Search size={16} className="shrink-0 text-slate-500" />
+          <Search size={16} className="shrink-0 text-black-ink/45" />
           <input
             ref={inputRef}
             value={q}
@@ -82,13 +82,13 @@ function PaletteInner({ onClose, items }: { onClose: () => void; items: PaletteI
               setIdx(0);
             }}
             placeholder="Type a command or destination…"
-            className="w-full bg-transparent font-mono text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none"
+            className="w-full bg-transparent font-mono text-sm text-black-ink placeholder:text-black-ink/35 focus:outline-none"
           />
           <kbd className="cc-kbd">esc</kbd>
         </div>
         <div className="max-h-[46vh] overflow-y-auto p-2">
           {filtered.length === 0 && (
-            <div className="px-3 py-6 text-center text-sm text-slate-500">No matches</div>
+            <div className="px-3 py-6 text-center text-sm text-black-ink/45">No matches</div>
           )}
           {filtered.map((it, i) => (
             <button
@@ -99,18 +99,18 @@ function PaletteInner({ onClose, items }: { onClose: () => void; items: PaletteI
                 onClose();
               }}
               className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm ${
-                i === idx ? "bg-cyan-500/15 text-cyan-100 ring-1 ring-cyan-400/40" : "text-slate-300 hover:bg-white/5"
+                i === idx ? "bg-black-ink text-paper" : "text-black-ink/75 hover:bg-black-ink/10"
               }`}
             >
               <span>{it.label}</span>
               <span className="flex items-center gap-3">
-                {it.hint && <span className="font-mono text-[11px] text-slate-500">{it.hint}</span>}
-                {i === idx && <CornerDownLeft size={13} className="text-cyan-400" />}
+                {it.hint && <span className="font-mono text-[11px] text-black-ink/45">{it.hint}</span>}
+                {i === idx && <CornerDownLeft size={13} className="text-signal" />}
               </span>
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-4 border-t border-white/10 px-4 py-2 text-[11px] text-slate-500">
+        <div className="flex items-center gap-4 border-t border-white/10 px-4 py-2 text-[11px] text-black-ink/45">
           <span className="flex items-center gap-1.5">
             <kbd className="cc-kbd">↑</kbd>
             <kbd className="cc-kbd">↓</kbd> navigate

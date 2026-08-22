@@ -14,12 +14,12 @@ function UserChip() {
   const signOut = useAuth((s) => s.signOut);
   if (!user) return null;
   return (
-    <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-slate-900/80 px-2.5 py-2">
-      <span className="grid h-5 w-5 place-items-center rounded-full bg-gradient-to-br from-cyan-400 to-fuchsia-500 text-[10px] font-bold text-slate-950">
+    <div className="flex items-center gap-2 rounded-none border-[1.5px] border-black-ink bg-paper/95 px-2.5 py-2">
+      <span className="grid h-5 w-5 place-items-center rounded-full bg-black-ink text-[10px] font-bold text-paper">
         {user.name.slice(0, 1).toUpperCase()}
       </span>
-      <span className="hidden max-w-[90px] truncate font-mono text-[11px] text-slate-300 lg:block">{user.name}</span>
-      <button onClick={signOut} title="Sign out" className="text-slate-500 transition-colors hover:text-rose-300">
+      <span className="hidden max-w-[90px] truncate font-mono text-[11px] text-black-ink/75 lg:block">{user.name}</span>
+      <button onClick={signOut} title="Sign out" className="text-black-ink/45 transition-colors hover:text-signal">
         <LogOut size={13} />
       </button>
     </div>
@@ -102,19 +102,19 @@ function RepoLoader() {
 
   return (
     <div className="relative flex items-center">
-      <GitBranch size={14} className="absolute left-3 top-3 text-slate-400" />
+      <GitBranch size={14} className="absolute left-3 top-3 text-black-ink/55" />
       <input
         value={q}
         onChange={(e) => setQ(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && load()}
         placeholder="github.com/owner/repo"
-        className="w-56 pl-8 pr-2 py-2 rounded-xl bg-slate-900/80 border border-slate-700 text-sm outline-none focus:border-emerald-500"
+        className="w-56 pl-8 pr-2 py-2 rounded-xl bg-paper/95 border-[1.5px] border-black-ink text-sm outline-none focus:border-signal"
       />
       <button
         onClick={() => load()}
         disabled={busy}
         className={`ml-1 px-3 py-2 rounded-xl border text-xs font-bold ${
-          busy ? "bg-slate-800 border-slate-700 text-slate-500" : "bg-emerald-500/20 border-emerald-500 text-emerald-300 hover:bg-emerald-500/30"
+          busy ? "bg-paper/60 border-[1.5px] border-black-ink/40 text-black-ink/40" : "bg-black-ink text-paper border-[1.5px] border-black-ink hover:text-signal"
         }`}
       >
         {busy ? "Building…" : "Build City"}
@@ -127,25 +127,25 @@ function RepoLoader() {
 function WeatherPanel() {
   const s = useCity();
   return (
-    <div className="absolute right-3 top-[248px] w-52 pointer-events-auto rounded-xl bg-slate-900/85 backdrop-blur border border-slate-700 p-3">
-      <div className="text-[10px] tracking-widest text-slate-400 mb-2">ATMOSPHERE</div>
+    <div className="absolute right-3 top-[248px] w-52 pointer-events-auto rounded-none bg-paper/95 border-[1.5px] border-black-ink p-3">
+      <div className="caption-caps font-bold mb-2">ATMOSPHERE</div>
       <div className="flex gap-1.5">
         {([["clear", Sun], ["drizzle", CloudDrizzle], ["rain", CloudRain], ["storm", CloudLightning], ["snow", Snowflake], ["fog", CloudFog]] as const).map(([w, Ico]) => (
           <button key={w} onClick={() => s.patch({ weather: w, live: false })} title={w}
-            className={`flex-1 py-1.5 rounded-lg border text-xs ${s.weather === w ? "bg-cyan-500/20 border-cyan-500 text-cyan-300" : "bg-slate-900/80 border-slate-700"}`}>
+            className={`flex-1 py-1.5 rounded-lg border text-xs ${s.weather === w ? "bg-black-ink text-paper border-black-ink" : "bg-paper-deep border-[1.5px] border-black-ink/60"}`}>
             <Ico size={13} className="inline" />
           </button>))}
       </div>
       <button onClick={() => { const on = !s.sound; s.patch({ sound: on }); setAudioEnabled(on); }}
-        className={`w-full mt-2 py-1.5 rounded-lg border text-xs ${s.sound ? "bg-emerald-500/20 border-emerald-500 text-emerald-300" : "bg-slate-900/80 border-slate-700"}`}>
+        className={`w-full mt-2 py-1.5 rounded-lg border text-xs ${s.sound ? "bg-black-ink text-paper border-black-ink" : "bg-paper-deep border-[1.5px] border-black-ink/60"}`}>
         {s.sound ? "🔊 Sound on" : "🔇 Sound off"}
       </button>
-      <div className="mt-3 flex items-center gap-2 text-xs text-slate-400">
+      <div className="mt-3 flex items-center gap-2 text-xs text-black-ink/55">
         <span>{String(Math.floor(s.time)).padStart(2, "0")}:{String(Math.round((s.time % 1) * 60)).padStart(2, "0")}</span>
-        <input type="range" min={0} max={24} step={0.1} value={s.time} onChange={(e) => s.patch({ time: +e.target.value, autoCycle: false })} className="flex-1 accent-cyan-400" />
+        <input type="range" min={0} max={24} step={0.1} value={s.time} onChange={(e) => s.patch({ time: +e.target.value, autoCycle: false })} className="flex-1 accent-[#e30613]" />
       </div>
-      <label className="mt-1 flex items-center gap-2 text-xs text-slate-400">
-        <input type="checkbox" checked={s.autoCycle} onChange={(e) => s.patch({ autoCycle: e.target.checked })} className="accent-cyan-400" />
+      <label className="mt-1 flex items-center gap-2 text-xs text-black-ink/55">
+        <input type="checkbox" checked={s.autoCycle} onChange={(e) => s.patch({ autoCycle: e.target.checked })} className="accent-[#e30613]" />
         Auto day–night cycle
       </label>
     </div>
@@ -250,7 +250,7 @@ export function HUD() {
     }.`;
 
   return (
-    <div className="absolute inset-0 pointer-events-none text-slate-100 font-mono">
+    <div className="absolute inset-0 pointer-events-none text-black-ink font-mono">
       {/* top bar */}
       <div className="absolute top-0 left-0 right-0 flex items-center gap-3 p-3 pointer-events-auto">
         <button
@@ -258,27 +258,27 @@ export function HUD() {
             location.hash = "";
           }}
           title="Back to landing page"
-          className="cursor-pointer px-3 py-2 rounded-xl bg-slate-900/80 backdrop-blur border border-cyan-500/40 font-bold text-cyan-400 transition-colors hover:border-cyan-400"
+          className="cursor-pointer px-3 py-2 rounded-xl bg-paper/95 border-[1.5px] border-black-ink font-bold transition-colors hover:text-signal"
         >
           🏙 CODECITY AI
         </button>
-        <div className="px-3 py-2 rounded-xl bg-slate-900/80 border border-slate-700 text-xs">{projectName}</div>
+        <div className="px-3 py-2 rounded-xl bg-paper/95 border-[1.5px] border-black-ink text-xs">{projectName}</div>
         <RepoLoader />
         <div className="relative flex-1 max-w-md">
-          <Search size={14} className="absolute left-3 top-3 text-slate-400" />
+          <Search size={14} className="absolute left-3 top-3 text-black-ink/55" />
           <input
             id="city-search"
             ref={searchRef}
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Find a feature… e.g. payment   (press / )"
-            className="w-full pl-8 pr-3 py-2 rounded-xl bg-slate-900/80 border border-slate-700 text-sm outline-none focus:border-cyan-500"
+            className="w-full pl-8 pr-3 py-2 rounded-xl bg-paper/95 border-[1.5px] border-black-ink text-sm outline-none focus:border-signal"
           />
           {results.length > 0 && (
-            <div className="absolute mt-1 w-full rounded-xl bg-slate-900 border border-slate-700 overflow-hidden z-10">
+            <div className="absolute mt-1 w-full rounded-xl bg-paper border-[1.5px] border-black-ink overflow-hidden z-10">
               {results.map((b) => (
-                <button key={b.id} onClick={() => pick(b.id)} className="block w-full text-left px-3 py-2 text-sm hover:bg-cyan-500/20">
-                  {b.name} <span className="text-slate-500">· {b.districtName}</span>
+                <button key={b.id} onClick={() => pick(b.id)} className="block w-full text-left px-3 py-2 text-sm hover:bg-black-ink/10">
+                  {b.name} <span className="text-black-ink/45">· {b.districtName}</span>
                 </button>
               ))}
             </div>
@@ -288,26 +288,26 @@ export function HUD() {
         <div className="flex gap-2">
           <button
             onClick={() => s.patch({ traffic: !s.traffic })}
-            className={`px-3 py-2 rounded-xl border text-xs ${s.traffic ? "bg-cyan-500/20 border-cyan-500 text-cyan-300" : "bg-slate-900/80 border-slate-700"}`}
+            className={`px-3 py-2 rounded-xl border text-xs ${s.traffic ? "bg-black-ink text-paper border-black-ink" : "bg-paper-deep border-[1.5px] border-black-ink/60"}`}
           >
             <Radio size={12} className="inline mr-1" />
             Traffic
           </button>
           <button
             onClick={() => s.patch({ underground: !s.underground })}
-            className={`px-3 py-2 rounded-xl border text-xs ${s.underground ? "bg-cyan-500/20 border-cyan-500 text-cyan-300" : "bg-slate-900/80 border-slate-700"}`}
+            className={`px-3 py-2 rounded-xl border text-xs ${s.underground ? "bg-black-ink text-paper border-black-ink" : "bg-paper-deep border-[1.5px] border-black-ink/60"}`}
           >
             Underground
           </button>
           <button
             onClick={() => s.patch({ links: !s.links })}
-            className={`px-3 py-2 rounded-xl border text-xs ${s.links ? "bg-violet-500/20 border-violet-500 text-violet-300" : "bg-slate-900/80 border-slate-700"}`}
+            className={`px-3 py-2 rounded-xl border text-xs ${s.links ? "bg-black-ink text-paper border-black-ink" : "bg-paper-deep border-[1.5px] border-black-ink/60"}`}
           >
             Links
           </button>
           <button
             onClick={() => s.patch({ following: !s.following })}
-            className={`px-3 py-2 rounded-xl border text-xs ${s.following ? "bg-fuchsia-500/20 border-fuchsia-500 text-fuchsia-300" : "bg-slate-900/80 border-slate-700"}`}
+            className={`px-3 py-2 rounded-xl border text-xs ${s.following ? "bg-black-ink text-paper border-black-ink" : "bg-paper-deep border-[1.5px] border-black-ink/60"}`}
           >
             Follow-cam
           </button>
@@ -320,13 +320,13 @@ export function HUD() {
           [
             ["FILES", layout.buildings.length],
             ["LINES", lines],
-            ["SECURITY", "87"],
+            ["DISTRICTS", layout.districts.length],
             ["BOTTLENECKS", layout.buildings.filter((b) => b.health !== "ok").length],
           ] as [string, string | number][]
         ).map(([k, v]) => (
-          <div key={k} className="px-3 py-2 rounded-xl bg-slate-900/80 border border-slate-700 text-xs">
-            <div className="text-slate-400">{k}</div>
-            <div className="text-lg font-bold text-cyan-300">{v}</div>
+          <div key={k} className="px-3 py-2 rounded-xl bg-paper/95 border-[1.5px] border-black-ink text-xs">
+            <div className="text-black-ink/55">{k}</div>
+            <div className="text-lg font-bold text-signal">{v}</div>
           </div>
         ))}
       </div>
@@ -338,7 +338,7 @@ export function HUD() {
             s.patch({ traffic: true, following: true });
             s.notify("🚗 POST /api/auth/login dispatched");
           }}
-          id="cc-run-btn" className="px-5 py-3 rounded-xl bg-gradient-to-r from-[#f8fafc] via-[#cbd5e1] to-[#94a3b8] text-[#0b1222] font-bold text-sm shadow-[0_0_24px_rgba(226,232,240,.5)]"
+          id="cc-run-btn" className="px-5 py-3 rounded-xl bg-black-ink text-paper font-bold text-sm border-[1.5px] border-black-ink shadow-[4px_4px_0_rgba(20,20,20,.35)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_rgba(20,20,20,.35)] transition-all"
         >
           <Play size={14} className="inline mr-1" />
           RUN LOGIN
@@ -347,7 +347,7 @@ export function HUD() {
           <button
             key={l}
             onClick={() => s.patch({ latency: l })}
-            className={`px-3 py-3 rounded-xl border text-xs ${s.latency === l ? "bg-slate-700 border-slate-500" : "bg-slate-900/80 border-slate-700"}`}
+            className={`px-3 py-3 rounded-xl border text-xs ${s.latency === l ? "bg-black-ink text-paper border-black-ink" : "bg-paper-deep border-[1.5px] border-black-ink/60"}`}
           >
             {l === "fast" ? "🟢 80ms" : l === "medium" ? "🟡 300ms" : "🔴 2s"}
           </button>
@@ -357,7 +357,7 @@ export function HUD() {
             s.patch({ failing: !s.failing });
             if (!s.failing) s.notify("❌ Payment API failed — 500", "be-payctrl");
           }}
-          id="cc-fail-btn" className="px-3 py-3 rounded-xl bg-red-600/90 border border-red-500 text-xs font-bold"
+          id="cc-fail-btn" className="px-3 py-3 rounded-xl bg-signal misreg text-paper border-[1.5px] border-black-ink text-xs font-bold"
         >
           <Bug size={12} className="inline mr-1" />
           FAIL PAYMENT
@@ -372,7 +372,7 @@ export function HUD() {
             onClick={() => {
               if (n.target) pick(n.target);
             }}
-            className="text-left px-3 py-2 rounded-xl bg-slate-900/90 border border-red-500/50 text-xs hover:bg-red-500/20"
+            className="text-left px-3 py-2 rounded-xl bg-paper border-[1.5px] border-signal text-xs hover:bg-red-500/20"
           >
             {n.text} — click to inspect
           </button>
@@ -381,35 +381,35 @@ export function HUD() {
 
       {/* inspector */}
       {sel && (
-        <div className="absolute right-3 top-16 w-80 max-h-[70vh] overflow-auto rounded-xl bg-slate-900/90 backdrop-blur border border-slate-700 p-4 pointer-events-auto text-sm">
+        <div className="absolute right-3 top-16 w-80 max-h-[70vh] overflow-auto rounded-xl bg-paper/95 border-[1.5px] border-black-ink p-4 pointer-events-auto text-sm">
           <div className="flex justify-between items-start">
             <div>
-              <div className="font-bold text-cyan-300">{sel.name}</div>
-              <div className="text-xs text-slate-400">
+              <div className="font-bold text-signal">{sel.name}</div>
+              <div className="text-xs text-black-ink/55">
                 {sel.districtName} · {sel.kind} · {sel.loc} LOC ·{" "}
-                <span className={sel.health === "ok" ? "text-green-400" : "text-red-400"}>{sel.health}</span>
+                <span className={sel.health === "ok" ? "text-black-ink" : "text-signal"}>{sel.health}</span>
               </div>
             </div>
-            <button onClick={() => s.select(null)} className="text-slate-500 hover:text-white">
+            <button onClick={() => s.select(null)} className="text-black-ink/45 hover:text-black-ink">
               ✕
             </button>
           </div>
-          <div className="mt-3 text-xs font-bold text-slate-400">FUNCTIONS</div>
-          {sel.functions.length === 0 && <div className="text-xs text-slate-500">none extracted</div>}
+          <div className="mt-3 text-xs font-bold text-black-ink/55">FUNCTIONS</div>
+          {sel.functions.length === 0 && <div className="text-xs text-black-ink/45">none extracted</div>}
           {sel.functions.map((f) => (
             <button
               key={f.name}
               onClick={() => s.select(sel.id, f.name)}
               className={`block w-full text-left mt-1 px-2 py-1 rounded border text-xs ${
-                s.selectedFn === f.name ? "border-cyan-500 bg-cyan-500/10" : "border-slate-700"
+                s.selectedFn === f.name ? "border-signal bg-signal/10" : "border-black-ink/40"
               }`}
             >
               {f.name}({f.args})
             </button>
           ))}
           {selFn && (
-            <div className="mt-3 rounded-lg bg-slate-800/80 border border-fuchsia-500/40 p-3 text-xs">
-              <div className="font-bold text-fuchsia-300 mb-1"> AI GUIDE</div>
+            <div className="mt-3 rounded-lg border-[1.5px] border-black-ink bg-paper-deep p-3 text-xs">
+              <div className="font-bold text-signal mb-1"> AI GUIDE</div>
               {explain(sel, selFn)}
             </div>
           )}
@@ -435,18 +435,18 @@ function Minimap() {
       const g = c.getContext("2d")!;
       const S = c.width, k = S / 200, ox = S / 2, oz = 30 * k; // world x∈[-100,100], z∈[-70,130]
       g.clearRect(0, 0, S, S);
-      g.fillStyle = "rgba(7,11,24,.72)"; g.fillRect(0, 0, S, S);
-      g.fillStyle = "rgba(16,60,90,.8)";
+      g.fillStyle = "#efece0"; g.fillRect(0, 0, S, S);
+      g.strokeStyle = "rgba(20,20,20,.35)"; g.strokeRect(0.5, 0.5, S - 1, S - 1); g.fillStyle = "rgba(20,20,20,.18)";
       g.fillRect(ox - 5 * k, (-77) * k + oz, 10 * k, 110 * k); // river
       for (const d of LAYOUT.districts) {
         const w = d.stack === "database" ? 46 : 24, h = d.stack === "database" ? 14 : 20;
-        g.fillStyle = d.stack === "frontend" ? "rgba(56,189,248,.45)" : d.stack === "backend" ? "rgba(251,146,60,.45)" : d.stack === "database" ? "rgba(52,211,153,.5)" : "rgba(129,140,248,.45)";
-        g.fillRect(ox + (d.center[0] - w / 2) * k, oz + (d.center[1] - h / 2) * k, w * k, h * k);
+        g.globalAlpha = 0.28; g.fillStyle = "#141414";
+        g.fillRect(ox + (d.center[0] - w / 2) * k, oz + (d.center[1] - h / 2) * k, w * k, h * k); g.globalAlpha = 1;
       }
-      g.fillStyle = "rgba(226,240,255,.85)";
+      g.fillStyle = "#141414";
       for (const b of LAYOUT.buildings) g.fillRect(ox + b.pos[0] * k - 1, oz + b.pos[2] * k - 1, 2.4, 2.4);
       const fx = focus ? ox + focus.x * k : ox, fz = focus ? oz + focus.z * k : oz;
-      g.fillStyle = "#22d3ee";
+      g.fillStyle = "#e30613";
       g.beginPath(); g.arc(fx, fz, 3, 0, Math.PI * 2); g.fill();
     };
     raf = requestAnimationFrame(draw);
@@ -454,7 +454,7 @@ function Minimap() {
   }, [focus]);
   return (
     <canvas ref={canvas} width={160} height={160}
-      className="absolute left-3 bottom-[220px] rounded-xl border border-slate-700 pointer-events-auto cursor-crosshair"
+      className="absolute left-3 bottom-[220px] rounded-none border-[1.5px] border-black-ink pointer-events-auto cursor-crosshair shadow-[3px_3px_0_rgba(20,20,20,.25)]"
       onClick={(e) => {
         const r = (e.target as HTMLCanvasElement).getBoundingClientRect();
         const k = 160 / 200, ox = 80, oz = 30 * k;
@@ -475,21 +475,21 @@ function LegendPanel() {
   return (
     <div className="absolute bottom-4 left-3 pointer-events-auto">
       {open ? (
-        <div className="w-56 rounded-xl bg-slate-900/85 backdrop-blur border border-slate-700 p-3 text-xs">
-          <button onClick={() => setOpen(false)} className="float-right text-slate-500 hover:text-white">
+        <div className="w-56 rounded-none bg-paper/95 border-[1.5px] border-black-ink p-3 text-xs">
+          <button onClick={() => setOpen(false)} className="float-right text-black-ink/45 hover:text-black-ink">
             ✕
           </button>
-          <div className="font-bold text-slate-300 mb-2">BUILDING LEGEND</div>
+          <div className="font-bold text-black-ink/75 mb-2">BUILDING LEGEND</div>
           <div className="grid grid-cols-2 gap-y-1">
             {(Object.keys(KIND_COLOR) as (keyof typeof KIND_COLOR)[]).map((k) => (
               <div key={k} className="flex items-center gap-2">
                 <span className="inline-block w-2.5 h-2.5 rounded-sm" style={{ background: KIND_COLOR[k] }} />
-                <span className="text-slate-300">{k}</span>
-                <span className="text-slate-500">×{counts.get(k) ?? 0}</span>
+                <span className="text-black-ink/75">{k}</span>
+                <span className="text-black-ink/45">×{counts.get(k) ?? 0}</span>
               </div>
             ))}
           </div>
-          <div className="mt-2 pt-2 border-t border-slate-700 text-[10px] leading-relaxed text-slate-400">
+          <div className="mt-2 pt-2 border-t border-black-ink/30 text-[10px] leading-relaxed text-black-ink/55">
             <Keyboard size={10} className="inline mr-1" />
             <b>/</b> search · <b>Enter</b> run login · <b>T</b> traffic · <b>U</b> pipes · <b>K</b> links · <b>F</b> follow ·{" "}
             <b>Esc</b> close
@@ -498,7 +498,7 @@ function LegendPanel() {
       ) : (
         <button
           onClick={() => setOpen(true)}
-          className="px-3 py-2 rounded-xl bg-slate-900/80 border border-slate-700 text-xs text-slate-300 hover:border-cyan-500/60"
+          className="px-3 py-2 rounded-xl bg-paper/95 border-[1.5px] border-black-ink text-xs text-black-ink/75 hover:border-signal"
         >
           ☰ Legend &amp; keys
         </button>
