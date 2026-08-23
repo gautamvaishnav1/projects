@@ -48,8 +48,10 @@ function Walker({ a, b, seed, tint }: { a: [number, number]; b: [number, number]
     const x = a[0] + (b[0] - a[0]) * u, z = a[1] + (b[1] - a[1]) * u;
     ref.current.position.set(x, 0.02, z);
     const dx = b[0] - a[0], dz = b[1] - a[1];
-    // face travel direction: flip when the ping-pong reverses
-    ref.current.rotation.y = Math.atan2(dx * dir, dz * dir);
+    // face travel direction: flip when the ping-pong reverses. The Soldier's
+    // nose points at −Z (visor + toes measured on the −Z side), so add π —
+    // atan2 alone aims +Z and made everyone moonwalk backwards.
+    ref.current.rotation.y = Math.atan2(dx * dir, dz * dir) + Math.PI;
     if (umb.current) umb.current.rotation.z = ENV.wind * 0.35;
   });
 
@@ -81,10 +83,11 @@ function Bystander({ pos, seed }: { pos: [number, number]; mid?: boolean; seed: 
     let outfit = OUTFITS[Math.floor(seed * 31) % OUTFITS.length];
     cloned.traverse((o: any) => {
       if (o.isMesh) {
-        // clone geometry BEFORE translating — otherwise the pivot shift mutates the
-        // cached GLB's shared geometry and every bystander sinks 0.2 per mount
+        // clone geometry so per-instance material tinting never mutates the
+        // cached GLB. Do NOT translate it — the Kenney rig already has its
+        // feet at y=0, and shifting the mesh down sank every bystander 0.2
+        // into the ground (the "sinking characters" bug).
         o.geometry = (o.geometry as THREE.BufferGeometry).clone();
-        o.geometry.translate(0, -0.2, 0);
         o.material = (Array.isArray(o.material) ? o.material : [o.material]).map((m: any) => {
           const c = m.clone(); if (c.color) c.color.lerp(new THREE.Color(outfit), 0.45);
           return c;
@@ -164,7 +167,8 @@ function BridgeWalker({ a, b, y, seed }: { a: [number, number]; b: [number, numb
     t.current += dt * speed;
     const u = (Math.sin(t.current * 0.5) + 1) / 2;
     ref.current.position.set(a[0] + (b[0] - a[0]) * u, y, a[1] + (b[1] - a[1]) * u);
-    ref.current.rotation.y = Math.atan2(b[0] - a[0], b[1] - a[1]);
+    // Soldier's nose is at −Z → +π so the bridge walker faces forward, not back
+    ref.current.rotation.y = Math.atan2(b[0] - a[0], b[1] - a[1]) + Math.PI;
   });
   return (
     <group ref={ref} position={[a[0], y, a[1]]} scale={1.25}>

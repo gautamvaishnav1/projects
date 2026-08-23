@@ -11,10 +11,11 @@ void main(){
  float w1=sin(vUv.y*60.0+uTime*2.2)+sin(vUv.x*24.0-uTime*1.6);
  float w2=sin((vUv.x+vUv.y)*40.0-uTime*3.0);
  float w=(w1+w2)*0.25+0.5;
- vec3 deep=vec3(0.01,0.10,0.20);
- vec3 hi=vec3(0.10,0.45,0.60);
- vec3 col=mix(deep,hi,pow(w,2.0)*0.5);
- col+=pow(w,4.0)*0.3;
+ // lively river blue — deep channel with bright moving sparkle
+ vec3 deep=vec3(0.05,0.28,0.45);
+ vec3 hi=vec3(0.35,0.72,0.85);
+ vec3 col=mix(deep,hi,pow(w,2.0)*0.75);
+ col+=pow(w,5.0)*0.45;
  float a=0.95*smoothstep(0.0,0.06,vUv.x)*smoothstep(1.0,0.94,vUv.x);
  gl_FragColor=vec4(col,a); }`;
 

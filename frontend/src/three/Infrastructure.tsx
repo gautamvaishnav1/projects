@@ -16,16 +16,23 @@ export function Ground() {
   const pbr = useMemo(() => groundTextures(), []);
   return (
     <group>
-      {/* PBR photo grass */}
+      {/* PBR photo grass — tinted a lively green instead of the old gray-green */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[420, 420]} />
-        <meshStandardMaterial {...pbr} color="#9fb8a8" transparent opacity={underground ? 0.12 : 1} roughness={1} normalScale={new THREE.Vector2(0.7, 0.7)} />
+        <meshStandardMaterial {...pbr} color="#7fbf6a" transparent opacity={underground ? 0.12 : 1} roughness={1} normalScale={new THREE.Vector2(0.7, 0.7)} />
       </mesh>
       {/* riverbed under the shader water */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, -20]}>
         <planeGeometry args={[13, 132]} />
         <meshStandardMaterial map={canvasMap} color="#1c2b3a" roughness={1} />
       </mesh>
+      {/* sandy banks hugging both river edges so the water reads as a real river */}
+      {[-6.4, 6.4].map((bx, i) => (
+        <mesh key={`bank${i}`} rotation={[-Math.PI / 2, 0, 0]} position={[bx, 0.02, -22]} receiveShadow>
+          <planeGeometry args={[2.6, 112]} />
+          <meshStandardMaterial color="#c9b284" roughness={1} />
+        </mesh>
+      ))}
     </group>
   );
 }

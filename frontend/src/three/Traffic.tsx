@@ -12,6 +12,13 @@ const SPEED = { fast: 0.1, medium: 0.045, slow: 0.018 };
 const LAT_COLOR = { fast: "#22c55e", medium: "#eab308", slow: "#ef4444" };
 
 /**
+ * Models whose nose points at −Z in local space. `lookAt` aims +Z along the
+ * travel tangent, so these would drive in reverse unless we spin them 180°.
+ * (Measured from wheel nodes: ferrari front axle sits at z=−1.15, rear +1.5.)
+ */
+const REVERSE_MODELS = new Set(["/models/vehicles/ferrari.glb"]);
+
+/**
  * Build a driving curve for a flow. Prefers the hand-authored street lane in
  * L.flowPaths (cars ride actual roads); falls back to building centers only
  * when no lane exists for that flow.
@@ -52,16 +59,17 @@ function GltfCar({ url, color }: { url: string; color?: string }) {
   return <primitive object={cloned} />;
 }
 
-function Headlights() {
+function Headlights({ flip = false }: { flip?: boolean }) {
   const mat = useRef<THREE.MeshStandardMaterial>(null!);
+  const z = flip ? -1.05 : 1.05;
   useFrame(() => { if (mat.current) mat.current.emissiveIntensity = ENV.night * 2; });
   return (
     <group>
-      <mesh position={[-0.28, 0.45, 1.05]} rotation-x={-Math.PI / 2}>
+      <mesh position={[-0.28, 0.45, z]} rotation-x={-Math.PI / 2}>
         <circleGeometry args={[0.09, 10]} />
         <meshStandardMaterial ref={mat} color="#fff7d6" emissive="#ffdf8a" emissiveIntensity={0} />
       </mesh>
-      <mesh position={[0.28, 0.45, 1.05]} rotation-x={-Math.PI / 2}>
+      <mesh position={[0.28, 0.45, z]} rotation-x={-Math.PI / 2}>
         <circleGeometry args={[0.09, 10]} />
         <meshStandardMaterial color="#fff7d6" emissive="#ffdf8a" emissiveIntensity={0} />
       </mesh>
@@ -88,12 +96,14 @@ function Car({ curve, offset, latencyKey, hero, stuck, color }: any) {
     const lift = (1 - THREE.MathUtils.smoothstep(Math.abs(p.x), 4.8, 7)) * 0.35;
     ref.current.position.set(p.x, p.y + lift, p.z);
     ref.current.lookAt(p.clone().add(tan));
+    // nose-at-−Z models would otherwise drive in reverse — spin them round
+    if (REVERSE_MODELS.has(url)) ref.current.rotateY(Math.PI);
     if (hero) { followTarget.active = true; followTarget.x = p.x; followTarget.z = p.z; }
   });
   return (
     <group ref={ref}>
       <GltfCar url={url} color={typeof color === "string" && color.startsWith("#") ? color : undefined} />
-      <Headlights />
+      <Headlights flip={REVERSE_MODELS.has(url)} />
       <mesh position={[0, 1.1, -0.6]}><sphereGeometry args={[0.07, 8, 8]} /><meshStandardMaterial color={LAT_COLOR[cur]} emissive={LAT_COLOR[cur]} emissiveIntensity={0.6 + ENV.night * 3} /></mesh>
     </group>
   );

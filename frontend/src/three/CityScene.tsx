@@ -6,6 +6,7 @@ import { useCityLayout } from "../lib/city";
 import { useCity } from "../store/useCity";
 import { Building, District, NightMaterials } from "./Buildings";
 import { Ground, Roads, Underground, Decor, Links } from "./Infrastructure";
+import { Greenery } from "./Greenery";
 import { Traffic } from "./Traffic";
 import { People } from "./People";
 import { River } from "./Water";
@@ -59,6 +60,11 @@ export function CityScene() {
       <SceneSuspense>
         <SceneErrorBoundary>
           <Decor L={L} />
+        </SceneErrorBoundary>
+      </SceneSuspense>
+      <SceneSuspense>
+        <SceneErrorBoundary>
+          <Greenery />
         </SceneErrorBoundary>
       </SceneSuspense>
       <SceneSuspense><Links L={L} /></SceneSuspense>

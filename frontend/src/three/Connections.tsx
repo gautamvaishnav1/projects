@@ -11,15 +11,18 @@ const EDGE_COLOR: Record<EdgeNode["kind"], string> = {
   query: "#34d399",
 };
 
+/** packets per connection — more on active links so the flow reads clearly */
+const PACKETS = 3;
+
 function Arc({ edge, layout, phase }: { edge: EdgeNode; layout: CityLayout; phase: number }) {
   const selectedId = useCity((s) => s.selectedId);
   const linksOn = useCity((s) => s.links);
   const group = useRef<THREE.Group>(null);
-  const packet = useRef<THREE.Mesh>(null);
+  const packets = useRef<(THREE.Mesh | null)[]>([]);
   const mat = useRef<THREE.MeshBasicMaterial>(null);
   const active = selectedId === edge.from || selectedId === edge.to;
 
-  const geo = useMemo(() => {
+  const curve = useMemo(() => {
     const a = layout.byId.get(edge.from);
     const b = layout.byId.get(edge.to);
     if (!a || !b) return null;
@@ -27,26 +30,38 @@ function Arc({ edge, layout, phase }: { edge: EdgeNode; layout: CityLayout; phas
     const pb = new THREE.Vector3(b.pos[0], b.h + 1, b.pos[2]);
     const mid = pa.clone().add(pb).multiplyScalar(0.5);
     mid.y += pa.distanceTo(pb) * 0.22 + 3;
-    return new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(pa, mid, pb), 32, 0.09, 5, false);
+    return new THREE.QuadraticBezierCurve3(pa, mid, pb);
   }, [edge, layout]);
+
+  const geo = useMemo(() => {
+    if (!curve) return null;
+    return new THREE.TubeGeometry(curve, 32, 0.09, 5, false);
+  }, [curve]);
   useEffect(() => () => geo?.dispose(), [geo]);
 
   useFrame(({ clock }) => {
-    if (!group.current || !geo) return;
+    if (!group.current || !geo || !curve) return;
     const t = clock.elapsedTime;
     group.current.visible = linksOn || active;
-    if (mat.current) mat.current.opacity = active ? 0.85 : 0.14 + Math.sin(t * 1.6 + phase) * 0.05;
-    if (active && packet.current) {
-      packet.current.visible = true;
-      const u = (t * 0.45 + phase) % 1;
-      const p = geo.parameters.path.getPoint(u);
-      packet.current.position.copy(p);
-    } else if (packet.current) {
-      packet.current.visible = false;
+    if (!group.current.visible) return;
+    if (mat.current) mat.current.opacity = active ? 0.85 : 0.16 + Math.sin(t * 1.6 + phase) * 0.05;
+    // continuous data flow: packets stream from → to along the arc
+    const speed = active ? 0.5 : 0.28;
+    for (let i = 0; i < PACKETS; i++) {
+      const p = packets.current[i];
+      if (!p) continue;
+      const u = (t * speed + phase + i / PACKETS) % 1;
+      const pos = curve.getPoint(u);
+      p.position.copy(pos);
+      // fade packets in/out at the ends so they don't pop
+      const fade = Math.min(u, 1 - u) * 6;
+      (p.material as THREE.MeshBasicMaterial).opacity = Math.min(1, fade) * (active ? 1 : 0.75);
+      const s = active ? 1 : 0.7;
+      p.scale.setScalar(s * (0.8 + 0.4 * Math.min(1, fade)));
     }
   });
 
-  if (!geo) return null;
+  if (!geo || !curve) return null;
 
   return (
     <group ref={group}>
@@ -61,10 +76,12 @@ function Arc({ edge, layout, phase }: { edge: EdgeNode; layout: CityLayout; phas
           toneMapped={false}
         />
       </mesh>
-      <mesh ref={packet} visible={false}>
-        <sphereGeometry args={[0.32, 8, 8]} />
-        <meshBasicMaterial color={EDGE_COLOR[edge.kind]} toneMapped={false} />
-      </mesh>
+      {Array.from({ length: PACKETS }).map((_, i) => (
+        <mesh key={i} ref={(el) => { packets.current[i] = el; }}>
+          <sphereGeometry args={[0.3, 8, 8]} />
+          <meshBasicMaterial color={EDGE_COLOR[edge.kind]} transparent opacity={0.9} toneMapped={false} />
+        </mesh>
+      ))}
     </group>
   );
 }
