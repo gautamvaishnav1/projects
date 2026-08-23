@@ -6,6 +6,7 @@ import { apiFetch, API_BASE, useAuth } from "../lib/auth";
 import { architectureToCity, useCityLayout } from "../lib/city";
 import { KIND_COLOR } from "../lib/layout";
 import { useCity } from "../store/useCity";
+import { pushLog, LOG_BUFFER } from "./logFeed";
 import { DraggablePanel } from "./DraggablePanel";
 
 const POLL_INTERVAL_MS = 2000;
@@ -278,15 +279,6 @@ export function FloatingNotifs() {
   );
 }
 
-/* ── live log feed: frontend actions + backend HTTP lines via SSE ── */
-interface LogLine { t: number; src: "fe" | "be"; level: string; msg: string }
-const LOG_BUFFER: LogLine[] = [];
-export function pushLog(src: "fe" | "be", msg: string, level: "info" | "warn" | "error" | "ok" = "info") {
-  LOG_BUFFER.push({ t: Date.now(), src, level, msg });
-  if (LOG_BUFFER.length > 200) LOG_BUFFER.shift();
-  window.dispatchEvent(new CustomEvent("cc-log"));
-}
-
 function LogPanel() {
   const [open, setOpen] = useState(false);
   const [, force] = useState(0);
@@ -299,7 +291,8 @@ function LogPanel() {
       es.onmessage = (m) => {
         try {
           const d = JSON.parse(m.data) as { message?: string; level?: string };
-          if (d.message) pushLog("be", d.message, (d.level as any) ?? "info");
+          const level = d.level === "warn" || d.level === "error" || d.level === "ok" ? d.level : "info";
+          if (d.message) pushLog("be", d.message, level);
         } catch { /* keep-alive comments etc. */ }
       };
     } catch { /* SSE optional */ }
@@ -576,8 +569,9 @@ export function HUD() {
         <LatencyButtons />
         <button
           onClick={() => {
-            s.patch({ traffic: true, following: true });
-            s.dispatchMission("login"); // courier car w/ floating info cards
+            s.patch({ traffic: true, showcase: false });
+            s.select(null);
+            s.dispatchMission("login"); // courier car w/ floating info cards + cine cam
             s.notify("🚗 POST /api/v1/auth/login dispatched — courier en route");
             pushLog("fe", "RUN ▸ courier dispatched · POST /api/v1/auth/login", "info");
           }}
@@ -585,6 +579,30 @@ export function HUD() {
         >
           <Play size={14} className="mr-1 inline" />
           RUN LOGIN
+        </button>
+        <button
+          onClick={() => {
+            s.patch({ traffic: true, showcase: false });
+            s.dispatchMission("payment");
+            s.notify("💳 POST /api/v1/payments dispatched — Stripe run started", undefined, "info");
+            pushLog("fe", "RUN ▸ courier dispatched · POST /api/v1/payments", "info");
+          }}
+          id="cc-pay-btn" title="Dispatch a payment courier through route → controller → service → Stripe → vault"
+          className="rounded-xl border-[1.5px] border-black-ink bg-paper-deep px-3 py-2 text-xs font-bold text-black-ink/85 transition-colors hover:border-signal md:py-3"
+        >
+          💳<span className="ml-1 hidden sm:inline">RUN PAYMENT</span>
+        </button>
+        <button
+          onClick={() => {
+            s.patch({ traffic: true, showcase: false });
+            s.dispatchMission("cart");
+            s.notify("🛒 PATCH /api/v1/cart dispatched — cart sync en route", undefined, "info");
+            pushLog("fe", "RUN ▸ courier dispatched · PATCH /api/v1/cart", "info");
+          }}
+          id="cc-cart-btn" title="Dispatch a cart-sync courier through the cart pipeline"
+          className="rounded-xl border-[1.5px] border-black-ink bg-paper-deep px-3 py-2 text-xs font-bold text-black-ink/85 transition-colors hover:border-signal md:py-3"
+        >
+          🛒<span className="ml-1 hidden sm:inline">RUN CART</span>
         </button>
         <button
           onClick={() => {

@@ -80,7 +80,7 @@ function Bystander({ pos, seed }: { pos: [number, number]; mid?: boolean; seed: 
   const cloned = useMemo(() => scene.clone(true), [scene]);
   // limb pivots at hips/shoulders so idle clips bend limbs instead of the whole body
   useMemo(() => {
-    let outfit = OUTFITS[Math.floor(seed * 31) % OUTFITS.length];
+    const outfit = OUTFITS[Math.floor(seed * 31) % OUTFITS.length];
     cloned.traverse((o: any) => {
       if (o.isMesh) {
         // clone geometry so per-instance material tinting never mutates the
@@ -94,7 +94,7 @@ function Bystander({ pos, seed }: { pos: [number, number]; mid?: boolean; seed: 
         });
       }
     });
-  }, [cloned]);
+  }, [cloned, seed]);
   const { actions, names } = useAnimations(animations, cloned);
   useMemo(() => {
     const clip = names.find((n) => /idle|wave/i.test(n)) ?? names[0];

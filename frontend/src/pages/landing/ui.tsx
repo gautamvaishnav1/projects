@@ -1,59 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-
-/* ── hooks ───────────────────────────────────────────────────────── */
-
-export function useInView<T extends Element>(threshold = 0.2) {
-  const ref = useRef<T>(null);
-  const [seen, setSeen] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) {
-          setSeen(true);
-          io.disconnect();
-        }
-      },
-      { threshold },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [threshold]);
-  return [ref, seen] as const;
-}
-
-export function useCountUp(target: number, run: boolean, ms = 1400) {
-  const [v, setV] = useState(0);
-  useEffect(() => {
-    if (!run) return;
-    let raf = 0;
-    const t0 = performance.now();
-    const tick = (t: number) => {
-      const k = Math.min((t - t0) / ms, 1);
-      setV(Math.round(target * (1 - Math.pow(1 - k, 3))));
-      if (k < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [run, target, ms]);
-  return v;
-}
-
-export function useScrollProgress() {
-  const [p, setP] = useState(0);
-  useEffect(() => {
-    const on = () => {
-      const h = document.documentElement;
-      const max = h.scrollHeight - h.clientHeight;
-      setP(max > 0 ? h.scrollTop / max : 0);
-    };
-    on();
-    window.addEventListener("scroll", on, { passive: true });
-    return () => window.removeEventListener("scroll", on);
-  }, []);
-  return p;
-}
+import { useInView, useScrollProgress } from "./hooks";
 
 /* ── reveal wrapper — print-wipe entrance ────────────────────────── */
 
@@ -477,12 +423,12 @@ export function AtlasPlate() {
 export function Teletype() {
   const [ref, seen] = useInView<HTMLDivElement>(0.3);
   const [n, setN] = useState(0);
-  const staticAll = useRef(false);
   useEffect(() => {
+    // reduced-motion users get everything at once (deferred a tick so the
+    // effect body itself stays free of synchronous setState)
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      staticAll.current = true;
-      setN(TT_LINES.length);
-      return;
+      const id = window.setTimeout(() => setN(TT_LINES.length), 0);
+      return () => clearTimeout(id);
     }
     if (!seen) return;
     let t: number;

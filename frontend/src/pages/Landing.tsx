@@ -1,5 +1,6 @@
-import { useEffect, useState, type FormEvent, type MouseEvent } from "react";
-import { Reveal, FolioBar, Teletype, MiniCity, TickerBand, AtlasPlate, useInView, useCountUp } from "./landing/ui";
+import { Suspense, lazy, useEffect, useState, type FormEvent, type MouseEvent } from "react";
+import { Reveal, FolioBar, Teletype, MiniCity, TickerBand } from "./landing/ui";
+import { useInView, useCountUp } from "./landing/hooks";
 
 /* ═══ INTERNATIONALES ARCHIV — Swiss press system ══════════════════
    1958 Müller-Brockmann poster logic on a modern web grid.
@@ -209,22 +210,84 @@ function RasterSection() {
   );
 }
 
-/* ── 02 ATLAS — world distribution plate ─────────────────────────── */
+/* ── 02 ATLAS — world map: printed MERN maquette + flat plate ────── */
+
+const MernWorld3D = lazy(() => import("./landing/MernWorld"));
 
 function AtlasSection() {
+  const [ref, seen] = useInView<HTMLDivElement>(0.25);
+  const [tab, setTab] = useState(0);
+  const KEYS = ["client", "api", "node", "data"];
+  const caps = [
+    "<App/> renders the plan — state, router, components.",
+    "route → guard → controller. Requests checked at the gate.",
+    "Event loop executes — non-blocking I/O, libuv pool.",
+    "Documents persist — collections, indexes, pipelines.",
+  ];
+  // hash-synced tabs: #atlas/data deep-links a layer, browser-native
+  useEffect(() => {
+    const apply = () => {
+      const i = KEYS.indexOf(location.hash.replace(/^#atlas\/?/, ""));
+      if (i >= 0) setTab(i);
+    };
+    apply();
+    window.addEventListener("hashchange", apply);
+    return () => window.removeEventListener("hashchange", apply);
+  }, []);
+  const pick = (i: number) => {
+    setTab(i);
+    history.replaceState(null, "", `#atlas/${KEYS[i]}`);
+  };
   return (
     <section id="atlas" className="sheet scroll-mt-8 py-20 md:py-28">
       <SecHead n="02" t="ATLAS" meta="ONE REQUEST, END TO END" />
       <div className="grid grid-cols-12 gap-x-6 gap-y-12">
-        <div className="col-span-12 lg:col-span-8">
+        <div ref={ref} className="col-span-12 lg:col-span-8">
+          {/* ── the world map — real 3D maquette, mounts on first view ── */}
           <Reveal>
-            <AtlasPlate />
-          </Reveal>
+            <figure>
+              <div className="border-[1.5px] border-black-ink p-1.5">
+                <div className="relative bg-paper-deep">
+                  <div className="h-[380px] w-full md:h-[440px]">
+                    {seen ? (
+                      <Suspense fallback={
+                        <div className="caption-caps grid h-full place-items-center text-black-ink/45">CASTING THE MAQUETTE…</div>
+                      }>
+                        <MernWorld3D />
+                      </Suspense>
+                    ) : (
+                      <div className="caption-caps grid h-full place-items-center text-black-ink/30">FIG. 05 — SCROLL TO CAST</div>
+                    )}
+                  </div>
+                  {/* layer tabs — printed switches under the plate */}
+                  <div className="flex border-t-[1.5px] border-black-ink">
+                    {["CLIENT · REACT", "API · EXPRESS", "RUNTIME · NODE", "DATA · MONGODB"].map((t, i) => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => pick(i)}
+                        onPointerDown={() => pick(i)}
+                        aria-pressed={tab === i}
+                        style={{ position: "relative", zIndex: 5 }}
+                        className={`caption-caps flex-1 border-r border-black-ink/25 px-1 py-2 last:border-r-0 transition-colors ${tab === i ? "bg-black-ink text-paper" : "text-black-ink/60 hover:bg-black-ink/5"}`}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <figcaption className="caption-caps mt-3 flex flex-wrap items-baseline justify-between gap-2 text-black-ink/45">
+                  <span>FIG. 05 — THE WORLD MAP · ONE REQUEST, END TO END</span>
+                  <span className="text-signal">{caps[tab]}</span>
+                </figcaption>
+              </figure>
+            </Reveal>
           <Reveal delay={150}>
             <p className="mt-8 max-w-[54ch] text-[15px] leading-6 text-black-ink/80">
               The whole stack on one plate: React renders, Express routes, Node executes,
-              MongoDB persists. Follow a single request as it descends the layers and its
-              response climbs back — no layer hidden, nothing between you and the metal.
+              MongoDB persists. Follow a single request as it descends through every island
+              and climbs home — hover a district to inspect it, switch layers below the plate.
             </p>
           </Reveal>
         </div>

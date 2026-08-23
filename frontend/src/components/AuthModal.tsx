@@ -55,12 +55,10 @@ function AuthInner({ onClose, onSuccess }: { onClose: () => void; onSuccess: () 
     if (oauthBusy) return;
     setOauthBusy(provider);
     setError(null);
-    try {
-      window.location.href = oauthStartUrl(provider);
-    } catch {
-      setOauthBusy(null);
-      setError("OAuth is not configured on the server yet.");
-    }
+    // Backend performs the full redirect dance itself. location.assign() is a
+    // plain navigation call (href assignment reads as a mutation to the
+    // React-compiler lint).
+    window.location.assign(oauthStartUrl(provider));
   }
 
   function switchMode(m: Mode) {

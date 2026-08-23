@@ -42,19 +42,29 @@ export function DraggablePanel({
   minH?: number;
   resizable?: boolean;
 }) {
-  const initial = useRef<Saved | null>(loadSaved(id));
-  const [free, setFree] = useState<boolean>(!!initial.current);
-  const [box, setBox] = useState(() => ({
-    x: initial.current?.x ?? 40,
-    y: initial.current?.y ?? 40,
-    w: initial.current?.w ?? 320,
-    h: initial.current?.h ?? 200,
-  }));
+  // read the saved layout once via lazy initializers (no ref access in render)
+  const [free, setFree] = useState<boolean>(() => {
+    const s = loadSaved(id);
+    return !!s;
+  });
+  const [box, setBox] = useState(() => {
+    const s = loadSaved(id);
+    return {
+      x: s?.x ?? 40,
+      y: s?.y ?? 40,
+      w: s?.w ?? 320,
+      h: s?.h ?? 200,
+    };
+  });
   const ref = useRef<HTMLDivElement>(null);
   const boxRef = useRef(box);
-  boxRef.current = box;
   const freeRef = useRef(free);
-  freeRef.current = free;
+  // mirror latest state into refs for the pointer handlers (synced in an
+  // effect, never during render)
+  useEffect(() => {
+    boxRef.current = box;
+    freeRef.current = free;
+  }, [box, free]);
 
   useEffect(() => {
     const onReset = () => {

@@ -98,7 +98,8 @@ function Car({ curve, offset, latencyKey, hero, stuck, color }: any) {
     ref.current.lookAt(p.clone().add(tan));
     // nose-at-−Z models would otherwise drive in reverse — spin them round
     if (REVERSE_MODELS.has(url)) ref.current.rotateY(Math.PI);
-    if (hero) { followTarget.active = true; followTarget.x = p.x; followTarget.z = p.z; }
+    // NOTE: ambient traffic NEVER touches followTarget — the cinematic camera
+    // is reserved exclusively for dispatched missions (RUN buttons)
   });
   return (
     <group ref={ref}>
@@ -145,6 +146,24 @@ const MISSION_SPECS: Record<string, HopSpec[]> = {
     { buildingId: "be-authsvc", title: "authService.js", verb: "verify", detail: ["Password compared against the bcrypt", "hash · createToken() signs a JWT", "(HS256, user id, 24h expiry)."] },
     { buildingId: "db-users", title: "users collection", verb: "query", detail: ["SELECT … WHERE email = ? over the", "underground query pipe — the user row", "rides back up to authService."] },
     { landmark: "end", title: "200 OK · session created", verb: "done", detail: ["AuthResult { token, user } returns;", "AuthContext hydrates the session,", "gates lift app-wide. Welcome in."] },
+  ],
+  payment: [
+    { landmark: "start", title: "PaymentPage.jsx · onPay()", verb: "dispatch", detail: ["Card form validated (Luhn + expiry),", "idempotency key minted, then the", "client dispatches POST /payments."] },
+    { landmark: "toll", title: "JWT Toll Plaza", verb: "gate", detail: ["The barrier reads the Authorization", "ticket — no valid JWT, no crossing.", "Middleware stamps req.user and", "waves the courier through."] },
+    { buildingId: "be-payroute", title: "paymentRoutes.js", verb: "arrive", detail: ["Express matches POST /api/v1/", "payments. Route chain attaches the", "amount validator before the ctrl."] },
+    { buildingId: "be-payctrl", title: "paymentController.js", verb: "work", detail: ["Normalises amount/currency, loads", "the idempotency record — replays", "return the cached receipt instead", "of double-charging the card."] },
+    { buildingId: "be-paysvc", title: "paymentService.js", verb: "verify", detail: ["Core money logic: fraud checks,", "balance math wrapped in a tx,", "then the Stripe charge is drafted."] },
+    { buildingId: "ext-stripe", title: "Stripe · external API", verb: "gate", detail: ["The courier leaves the city walls:", "card → Stripe over HTTPS. A 2xx", "receipt comes back with the charge", "id; 402s bubble up as declines."] },
+    { buildingId: "db-payments", title: "payments collection", verb: "query", detail: ["INSERT payment doc (status: paid)", "with the stripe id — the query pipe", "carries the receipt to the vault."] },
+    { landmark: "end", title: "200 OK · receipt issued", verb: "done", detail: ["Receipt { chargeId, status } flows", "back through controller → route →", "client. UI flips to ✓ PAID."] },
+  ],
+  cart: [
+    { landmark: "start", title: "CartDrawer.tsx · addItem()", verb: "dispatch", detail: ["Add-to-cart clicked — optimistic", "UI update first, then a background", "PATCH /cart/:id to persist it."] },
+    { landmark: "toll", title: "JWT Toll Plaza", verb: "gate", detail: ["Same toll as every write: the JWT", "identifies whose cart this is.", "Anonymous carts never cross."] },
+    { buildingId: "be-cartroute", title: "cartRoutes.js", verb: "arrive", detail: ["Router maps PATCH /cart/:id and", "guards it with requireAuth before", "anything touches the controller."] },
+    { buildingId: "be-cartctrl", title: "cartController.js", verb: "work", detail: ["Merges the incoming line item with", "the session cart, clamps quantity", "to stock, dedupes product ids."] },
+    { buildingId: "db-carts", title: "carts collection", verb: "query", detail: ["UPDATE carts SET items — the", "persisted cart rides the pipe back", "up so React can reconcile state."] },
+    { landmark: "end", title: "200 OK · cart synced", verb: "done", detail: ["Server version of the cart lands;", "optimistic UI reconciles, badge", "count pulses. Item is durable."] },
   ],
 };
 
@@ -210,13 +229,13 @@ function MissionCard({ hop, idx, total }: { hop: Hop; idx: number; total: number
 }
 
 const MISSION_CRUISE = 0.03;   // u/sec — a stately roll, ~½ lap per minute
-const MISSION_DWELL = 2.6;     // sec paused under each gateway card
+const MISSION_DWELL = 3.4;     // sec paused under each gateway card (was 2.6)
 // ?fm=1 → verification fast-forward (10× cruise, snap dwells)
 const FM = typeof location !== "undefined" && new URLSearchParams(location.search).has("fm");
 const M_CRUISE = FM ? 0.3 : MISSION_CRUISE;
 const M_DWELL = FM ? 0.25 : MISSION_DWELL;
 
-function MissionCar({ curve, L, onEnd }: { curve: THREE.CatmullRomCurve3; L: CityLayout; onEnd: () => void }) {
+function MissionCar({ curve, L, flow = "login", onEnd }: { curve: THREE.CatmullRomCurve3; L: CityLayout; flow?: string; onEnd: () => void }) {
   const ref = useRef<THREE.Group>(null!);
   const u = useRef(0);
   const hopIdx = useRef(0);
@@ -224,11 +243,19 @@ function MissionCar({ curve, L, onEnd }: { curve: THREE.CatmullRomCurve3; L: Cit
   const dwellT = useRef(0);
   const [, force] = useState(0); // re-render when the active hop changes
   const activeHop = useRef(-1);
-  const hops = useMemo(() => stopsFor(curve, L, "login"), [curve, L]);
+  const hops = useMemo(() => stopsFor(curve, L, flow), [curve, L, flow]);
+  // cinematic camera state — a low chase cam while driving, a slow arc around
+  // the gateway while dwelling. Angles are absolute world-space so the arc is
+  // stable no matter which direction the car approached from.
+  const camA = useRef(0);
   const onEndRef = useRef(onEnd);
   onEndRef.current = onEnd;
 
-  useEffect(() => () => { followTarget.active = false; }, []);
+  useEffect(() => () => {
+    followTarget.active = false;
+    followTarget.mission = false;
+    delete (window as any).__mc; // probe hook outlives the mission otherwise
+  }, []);
 
   useFrame((_, rawDt) => {
     const dt = Math.min(rawDt, 0.05);
@@ -250,7 +277,7 @@ function MissionCar({ curve, L, onEnd }: { curve: THREE.CatmullRomCurve3; L: Cit
       }
     } else {
       dwellT.current += dt;
-      if (dwellT.current > 2.8) { onEndRef.current(); return; }
+      if (dwellT.current > 3.2) { onEndRef.current(); return; }
     }
 
     if (activeHop.current !== Math.min(hopIdx.current, hops.length - 1)) {
@@ -264,10 +291,22 @@ function MissionCar({ curve, L, onEnd }: { curve: THREE.CatmullRomCurve3; L: Cit
     ref.current.position.set(p.x, p.y + lift, p.z);
     ref.current.lookAt(p.clone().add(tan));
     if (REVERSE_MODELS.has(VEHICLE_HERO)) ref.current.rotateY(Math.PI);
-    // the mission owns the follow-cam while it runs
+
+    // ── cinematic follow feed (mission flag mutes the ambient hero car) ──
+    followTarget.mission = true;
     followTarget.active = true;
     followTarget.x = p.x;
     followTarget.z = p.z;
+    const inv = 1 / (Math.hypot(tan.x, tan.z) || 1);
+    if (phase.current === "drive") {
+      // chase cam parked behind-left of the car, looking ahead down the lane
+      followTarget.tx = tan.x * inv; followTarget.tz = tan.z * inv; followTarget.dwell = false;
+    } else {
+      // dwell: slow full orbit around THIS gateway, tilted down at the car
+      camA.current += dt * 0.5; // ~12.5 s per lap > dwell, so it never loops visibly
+      followTarget.tx = Math.cos(camA.current); followTarget.tz = Math.sin(camA.current);
+      followTarget.dwell = true;
+    }
     (window as any).__mc = { u: +u.current.toFixed(4), hop: hopIdx.current, phase: phase.current, dwell: +dwellT.current.toFixed(2), hops: hops.map((h) => +h.u.toFixed(3)) };
   });
 
@@ -358,6 +397,7 @@ export function Traffic({ L }: { L: CityLayout }) {
           key={missionKey}
           curve={curves[mission.flow]!}
           L={L}
+          flow={mission.flow}
           onEnd={() => endMission()}
         />
       )}

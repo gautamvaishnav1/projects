@@ -160,4 +160,4 @@ export const useCity = create<S>()((set) => ({
     }),
 }));
 
-export const followTarget = { active: false, x: 0, z: 0 };
+export const followTarget = { active: false, x: 0, z: 0, tx: 1, tz: 0, dwell: false, mission: false };

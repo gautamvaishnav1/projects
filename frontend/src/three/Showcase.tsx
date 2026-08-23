@@ -259,7 +259,6 @@ const TMP_TGT = new THREE.Vector3();
 
 export function ShowcaseOrbit() {
   const active = useCity((s) => s.showcase);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const controls = useThree((s) => s.controls) as any;
   const ang = useRef(-Math.PI / 3);
 

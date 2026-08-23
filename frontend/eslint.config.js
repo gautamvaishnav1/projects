@@ -20,4 +20,17 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    // react-three-fiber scene-graph files: writing refs/mutating three objects
+    // during "render" is the library's intended imperative idiom (the R3F
+    // reconciler renders once; all mutation happens in useFrame). The React
+    // Compiler purity rules don't model this and fire constant false alarms.
+    files: ['src/three/**/*.{ts,tsx}'],
+    rules: {
+      'react-hooks/refs': 'off',
+      'react-hooks/immutability': 'off',
+      'react-hooks/purity': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+    },
+  },
 ])
