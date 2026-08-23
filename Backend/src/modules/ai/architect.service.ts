@@ -76,6 +76,16 @@ async function generateWithLlm(metadata: ProjectMetadata): Promise<Architecture>
 /* Deterministic heuristic architect (offline fallback)                */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Builds a full multi-building city from ProjectMetadata alone:
+ *  1. strong signals first (routes → controllers, services, models + DB,
+ *     auth middleware, external SDK integrations);
+ *  2. every remaining scanned file is grouped by feature directory,
+ *     typed by dominant role and added as its own building — so ANY repo,
+ *     including libraries with zero HTTP signals, renders a whole city;
+ *  3. oversized feature groups split into per-file buildings;
+ *  4. deterministic ordering + capped fan-out keep output byte-stable.
+ */
 export function generateHeuristic(m: ProjectMetadata): Architecture {
   interface Node {
     id: string;
@@ -86,6 +96,8 @@ export function generateHeuristic(m: ProjectMetadata): Architecture {
   }
   const components = new Map<string, Node>();
   const connections: Architecture["connections"] = [];
+  /** file paths already represented by a signal-based component */
+  const claimed = new Set<string>();
 
   const add = (id: string, name: string, type: string, description: string, files: string[] = []): string => {
     const existing = components.get(id);
@@ -94,6 +106,7 @@ export function generateHeuristic(m: ProjectMetadata): Architecture {
       return id;
     }
     components.set(id, { id, name, type, description, files });
+    for (const f of files) claimed.add(f);
     return id;
   };
 
@@ -104,30 +117,22 @@ export function generateHeuristic(m: ProjectMetadata): Architecture {
     }
   };
 
-  // frontend?
-  const componentFiles = m.files.filter((f) => f.role === "component");
-  const hasFrontend =
-    componentFiles.length > 0 ||
-    Object.keys({ ...m.dependencies }).some((d) => ["react", "vue", "svelte", "@angular/core"].includes(d));
-  const frontendId = add(
-    "frontend",
-    "Frontend App",
-    "frontend",
-    `${componentFiles.length} UI component file(s) rendering the user interface.`,
-    componentFiles.slice(0, 8).map((f) => f.path)
-  );
+  /* ---------------- shared helpers ---------------- */
 
-  // group by feature derived from file names (auth.routes.ts -> "auth")
-  const featureOf = (filePath?: string): string => {
-    if (!filePath) return "core";
+  /** feature key for a file path: its directory (src/-style prefixes ignored) */
+  const featureOfPath = (filePath: string): string => {
     const parts = filePath.replace(/\\/g, "/").split("/");
-    let stem = (parts[parts.length - 1] ?? "").replace(/\.(jsx?|tsx?)$/i, "").toLowerCase();
-    stem = stem.replace(/([a-z0-9])(routes?|routers?|controllers?|services?|models?|schemas?)/g, "$1-$2");
-    stem = stem.replace(/[-._](routes?|routers?|controllers?|services?|models?|schemas?|middleware)+$/, "");
-    return slug(stem || parts[parts.length - 2] || "core");
+    const stem = (parts[parts.length - 1] ?? "").replace(/\.(m|c)?(jsx?|tsx?)$/i, "");
+    let base = 0;
+    if (parts.length > 1 && /^(src|lib|source|app|js|ts)$/i.test(parts[0])) base = 1;
+    const dir = parts.length - 1 > base ? parts[parts.length - 2] : stem;
+    return slug(dir.toLowerCase()) || "core";
   };
 
-  // entry point
+  const fileStem = (filePath: string): string =>
+    (filePath.replace(/\\/g, "/").split("/").pop() ?? "file").replace(/\.(m|c)?(jsx?|tsx?)$/i, "");
+
+  /* ---------------- 1a. entry point ---------------- */
   const entryFile = m.files.find((f) => f.role === "entry");
   const serverId = add(
     "server-app",
@@ -139,10 +144,10 @@ export function generateHeuristic(m: ProjectMetadata): Architecture {
     entryFile ? [entryFile.path] : []
   );
 
-  // routes -> controllers per feature
+  /* ---------------- 1b. routes → controllers ---------------- */
   const routeControllerIds = new Map<string, string>();
   for (const route of m.routes.slice(0, 120)) {
-    const feature = featureOf(route.file);
+    const feature = featureOfPath(route.file);
     const routesId = add(
       `${feature}-routes`,
       `${cap(feature)} Routes`,
@@ -150,10 +155,9 @@ export function generateHeuristic(m: ProjectMetadata): Architecture {
       `HTTP endpoints for ${feature} (${route.method} ${route.path}, ...).`,
       [route.file]
     );
-    link(frontendId, routesId, "sends requests");
+    link(serverId, routesId, "mounts");
 
     const controllerEntry = m.controllers.find((c) => c.name === route.handler);
-    const controllerName = controllerEntry?.name ?? route.handler.split(".")[0];
     const controllerId = add(
       `${feature}-controller`,
       `${cap(feature)} Controller`,
@@ -164,7 +168,6 @@ export function generateHeuristic(m: ProjectMetadata): Architecture {
     routeControllerIds.set(feature, controllerId);
     link(routesId, controllerId, "delegates to");
 
-    // auth middleware on this route?
     const guarded = /auth|protect|verify/i.test(route.handler);
     if (guarded || m.authIndicators.jwtLibraryUsed) {
       const authId = add(
@@ -178,9 +181,9 @@ export function generateHeuristic(m: ProjectMetadata): Architecture {
     }
   }
 
-  // services
+  /* ---------------- 1c. services ---------------- */
   for (const svc of m.services.slice(0, 30)) {
-    const feature = featureOf(svc.file);
+    const feature = featureOfPath(svc.file);
     const svcId = add(
       `${slug(svc.name)}-svc`,
       cap(svc.name),
@@ -192,7 +195,7 @@ export function generateHeuristic(m: ProjectMetadata): Architecture {
     if (ctrl) link(ctrl, svcId, "calls");
   }
 
-  // models + database
+  /* ---------------- 1d. models + database ---------------- */
   for (const model of m.models.slice(0, 25)) {
     const modelId = add(
       `${slug(model.name)}-model`,
@@ -205,7 +208,7 @@ export function generateHeuristic(m: ProjectMetadata): Architecture {
     );
     const owningService =
       m.services.find((s) => s.file === model.file) ??
-      m.services.find((s) => featureOf(s.file) === featureOf(model.file));
+      m.services.find((s) => featureOfPath(s.file) === featureOfPath(model.file));
     const dbId = add(
       "mongodb-database",
       "MongoDB Database",
@@ -216,7 +219,7 @@ export function generateHeuristic(m: ProjectMetadata): Architecture {
     link(modelId, dbId, "persists to");
   }
 
-  // external integrations (http clients / known SDKs)
+  /* ---------------- 1e. external integrations ---------------- */
   const externalDeps = Object.keys(m.dependencies).filter((d) =>
     /^(axios|node-fetch|got|stripe|openai|@google\/generativeai|twilio|aws-sdk|nodemailer|firebase)/i.test(d)
   );
@@ -232,7 +235,74 @@ export function generateHeuristic(m: ProjectMetadata): Architecture {
     }
   }
 
-  // connect frontend to nothing else? at minimum server exists
+  /* ---------------- 2. file-driven skyline ----------------
+     Every unclaimed scanned file becomes its OWN building (one file =
+     one building), typed by its detected role so files land in the
+     right district (frontend / backend / data / core). */
+  const isTestPath = (p: string): boolean =>
+    /(^|\/)(tests?|__tests__|spec)(\/|$)/i.test(p.replace(/\\/g, "/")) ||
+    /\.(test|spec)\.(m|c)?(jsx?|tsx?)$/i.test(p);
+
+  const typeForRole = (role: string): string => {
+    if (role === "component") return "frontend";
+    if (role === "model") return "model";
+    if (role === "routes") return "routes";
+    if (role === "controller") return "controller";
+    if (role === "middleware") return "middleware";
+    if (role === "config" || role === "entry") return "config";
+    if (role === "service") return "service";
+    return "utility";
+  };
+
+  // largest files first; cap keeps monorepos sane
+  const MAX_FILE_BUILDINGS = 60;
+  const candidates = m.files
+    .filter((f) => !isTestPath(f.path) && !claimed.has(f.path))
+    .sort((a, b) => b.lines - a.lines || a.path.localeCompare(b.path))
+    .slice(0, MAX_FILE_BUILDINGS);
+
+  const builtFileIds: Array<{ id: string; type: string }> = [];
+  const usedIds = new Set<string>();
+  for (const f of candidates) {
+    const feature = featureOfPath(f.path);
+    const stem = slug(fileStem(f.path)) || "file";
+    // index.js lives in ten dirs — keep ids/names unique
+    let n = 2;
+    let id = `${feature}-${stem}`;
+    while (usedIds.has(id)) id = `${feature}-${stem}-${n++}`;
+    usedIds.add(id);
+    const name = cap(stem);
+    const compId = add(
+      id,
+      name,
+      typeForRole(f.role),
+      `\`${f.path}\` (${f.lines} LOC) — ${feature} module.`,
+      [f.path]
+    );
+    builtFileIds.push({ id: compId, type: typeForRole(f.role) });
+  }
+
+  /* ---------------- 3. wiring ---------------- */
+  const frontendFiles = builtFileIds.filter((b) => b.type === "frontend");
+  const backendFiles = builtFileIds.filter(
+    (b) => !["frontend", "utility", "model"].includes(b.type)
+  );
+  const dataFiles = builtFileIds.filter((b) => b.type === "model");
+
+  // client files talk to the server
+  for (const fe of frontendFiles.slice(0, 12)) {
+    link(fe.id, serverId, "sends requests");
+  }
+  // server mounts backend modules (fan-out capped for tidy streets)
+  for (const be of backendFiles.slice(0, 12)) {
+    link(serverId, be.id, "uses");
+  }
+  // data modules persist into the database node
+  if (components.has("mongodb-database")) {
+    for (const dg of dataFiles.slice(0, 10)) link(dg.id, "mongodb-database", "persists to");
+  }
+
+  /* ---------------- never-empty / never-disconnected ---------------- */
   if (components.size <= 1) {
     add(
       "core-codebase",
@@ -242,10 +312,11 @@ export function generateHeuristic(m: ProjectMetadata): Architecture {
     );
   }
 
-  // fallback links so the graph is never fully disconnected
   if (connections.length === 0 && components.size > 1) {
     const ids = [...components.keys()];
-    for (let i = 0; i < ids.length - 1; i++) connections.push({ from: ids[i], to: ids[i + 1], label: "relates to" });
+    for (let i = 0; i < ids.length - 1; i++) {
+      connections.push({ from: ids[i], to: ids[i + 1], label: "relates to" });
+    }
   }
 
   return {

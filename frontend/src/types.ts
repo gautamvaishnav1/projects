@@ -24,6 +24,15 @@ export interface BuildingNode {
   loc: number;
   health: "ok" | "warn" | "error";
   functions: FunctionNode[];
+  /* rich backend analysis — present on cities built from real repo JSON */
+  description?: string;
+  /** 0-100 relative code complexity (backend visual.complexity) */
+  complexity?: number;
+  /** 0-10 architectural importance (connection degree) */
+  importance?: number;
+  filesCount?: number;
+  /** npm packages these files import */
+  imports?: string[];
 }
 
 export interface DistrictNode {

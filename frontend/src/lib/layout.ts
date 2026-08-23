@@ -129,12 +129,15 @@ export function buildLayout(city: CityJSON): CityLayout {
         x = ((bi % 3) - 1) * 6.5;
         z = (Math.floor(bi / 3) - 0.5) * 7;
       }
-      const h = 2 + Math.min(9, b.loc / 25);
+      // height = size (LOC) modulated by code complexity, so a hot file
+      // visibly towers over its neighbours even at equal line count
+      const cpx = (b.complexity ?? 25) / 100;
+      const h = 2 + Math.min(9, b.loc / 25) * (0.65 + cpx);
       buildings.push({
         ...b,
         pos: [cx + x, 0, cz + z],
         h,
-        color: KIND_COLOR[b.kind],
+        color: b.health === "ok" ? KIND_COLOR[b.kind] : "#e30613",
         stack: d.stack,
         districtId: d.id,
         districtName: d.name,

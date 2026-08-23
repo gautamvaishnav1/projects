@@ -23,6 +23,11 @@ interface S {
   // main-branch additions (auth shell, analyzer, traces)
   analyzing: boolean;
   failingId: string | null;
+  // live backend session — set when a real repo city is loaded
+  projectId: string | null;
+  analysisId: string | null;
+  chatLoading: boolean;
+  aiAnswer: string | null;
   traceSteps: string[];
   traceStep: number;
   notifications: {
@@ -59,6 +64,10 @@ export const useCity = create<S>()((set) => ({
   sound: false,
   analyzing: false,
   failingId: null,
+  projectId: null,
+  analysisId: null,
+  chatLoading: false,
+  aiAnswer: null,
   traceSteps: [],
   traceStep: -1,
   notifications: [],
@@ -88,6 +97,8 @@ export const useCity = create<S>()((set) => ({
       following: false,
       traceSteps: [],
       traceStep: -1,
+      chatLoading: false,
+      aiAnswer: null,
     }),
 }));
 

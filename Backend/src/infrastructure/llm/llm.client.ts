@@ -16,39 +16,56 @@ export async function chatCompletion(messages: ChatMessage[], temperature = 0.2)
   if (!env.llmApiKey) {
     throw ApiError.internal("LLM_API_KEY is not configured");
   }
-  let res: Response;
-  try {
-    res = await fetch(`${env.llmBaseUrl}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${env.llmApiKey}`
-      },
-      body: JSON.stringify({
-        model: env.llmModel,
-        messages,
-        temperature
-      }),
-      signal: AbortSignal.timeout(env.llmTimeoutMs)
-    });
-  } catch (err) {
-    throw ApiError.badGateway(
-      `LLM request failed (${env.llmBaseUrl})`,
-      err instanceof Error ? err.message : undefined
-    );
-  }
 
-  if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    throw ApiError.badGateway(`LLM API error (${res.status})`, body.slice(0, 300));
-  }
+  // bounded retries — transient network blips shouldn't kill an analysis
+  let lastErr: unknown;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    let res: Response;
+    try {
+      res = await fetch(`${env.llmBaseUrl}/chat/completions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${env.llmApiKey}`
+        },
+        body: JSON.stringify({
+          model: env.llmModel,
+          messages,
+          temperature
+        }),
+        signal: AbortSignal.timeout(env.llmTimeoutMs)
+      });
+    } catch (err) {
+      lastErr = err;
+      if (attempt < 3) {
+        await new Promise((r) => setTimeout(r, 1000 * attempt));
+        continue;
+      }
+      throw ApiError.badGateway(
+        `LLM request failed (${env.llmBaseUrl})`,
+        err instanceof Error ? err.message : undefined
+      );
+    }
 
-  const data = (await res.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
-  };
-  const content = data.choices?.[0]?.message?.content;
-  if (!content) throw ApiError.badGateway("LLM returned an empty response");
-  return content;
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      // retry transient upstream errors only (429 = free-tier saturation,
+      // often clears within seconds)
+      if ([429, 500, 502, 503, 504].includes(res.status) && attempt < 3) {
+        await new Promise((r) => setTimeout(r, attempt === 1 ? 2000 : 6000));
+        continue;
+      }
+      throw ApiError.badGateway(`LLM API error (${res.status})`, body.slice(0, 300));
+    }
+
+    const data = (await res.json()) as {
+      choices?: Array<{ message?: { content?: string } }>;
+    };
+    const content = data.choices?.[0]?.message?.content;
+    if (!content) throw ApiError.badGateway("LLM returned an empty response");
+    return content;
+  }
+  throw lastErr instanceof Error ? lastErr : new Error("LLM request failed");
 }
 
 /**

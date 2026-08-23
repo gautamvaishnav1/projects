@@ -3,7 +3,17 @@ import { asyncHandler } from "../../shared/utils/async-handler";
 import * as projectService from "./project.service";
 
 export const create = asyncHandler(async (req: Request, res: Response) => {
-  const project = await projectService.createProject(req.user!.id, req.body as never);
+  const { project, existed } = await projectService.createProject(req.user!.id, req.body as never);
+  if (existed) {
+    res.status(200).json({
+      success: true,
+      message:
+        `This GitHub repository (${project.repoUrl}) is already saved as your project ` +
+        `"${project.name}". No new project was created — open it from your projects list to view or run an analysis.`,
+      data: { project, alreadyExists: true }
+    });
+    return;
+  }
   res.status(201).json({ success: true, data: { project } });
 });
 

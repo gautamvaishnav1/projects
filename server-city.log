@@ -1,37 +1,375 @@
-2026-08-22T18:57:25.343Z [INFO] MongoDB connected -> 127.0.0.1/software-world
-2026-08-22T18:57:25.359Z [INFO] Socket.IO ready (JWT handshake required, dev mode)
-2026-08-22T18:57:25.375Z [INFO] Software World API listening on port 5000 (development)
-2026-08-22T18:57:25.376Z [INFO] Health:      http://localhost:5000/health
-2026-08-22T18:57:25.376Z [INFO] Auth:        POST http://localhost:5000/api/v1/auth/register
-2026-08-22T18:57:28.205Z [HTTP] POST /api/v1/auth/login -> 200 (169ms)
-2026-08-22T18:57:28.228Z [HTTP] GET /api/v1/projects -> 200 (12ms)
-2026-08-22T18:57:28.824Z [HTTP] POST /api/v1/projects/6a89c763fba6f11f175c0fbc/analyze -> 202 (584ms)
-2026-08-22T18:57:31.850Z [HTTP] GET /api/v1/analyses/6a89f1189b04e7b54b11b367/status -> 200 (8ms)
-2026-08-22T18:57:31.905Z [INFO] Repository downloaded {"repo":"gautamvaishnav1/firstReactProject","branch":"main","bytes":472085}
-2026-08-22T18:57:32.015Z [INFO] Repository parsed {"repo":"gautamvaishnav1/firstReactProject","files":16,"babel":16,"fallback":0,"routes":2,"models":0,"truncated":false}
-2026-08-22T18:57:33.417Z [WARN] LLM architect failed, falling back to heuristic mode {"error":"LLM API error (429)"}
-(node:24776) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
-(Use `node --trace-warnings ...` to show where the warning was created)
-2026-08-22T18:57:33.466Z [INFO] Analysis completed {"analysisId":"6a89f1189b04e7b54b11b367","repo":"gautamvaishnav1/firstReactProject","engine":"heuristic","components":4,"connections":2,"durationMs":4658}
-2026-08-22T18:57:34.867Z [HTTP] GET /api/v1/analyses/6a89f1189b04e7b54b11b367/status -> 200 (5ms)
-2026-08-22T18:57:34.884Z [HTTP] POST /api/v1/projects/6a89c763fba6f11f175c0fbc/analyze -> 202 (11ms)
-2026-08-22T18:57:36.456Z [INFO] Repository downloaded {"repo":"gautamvaishnav1/firstReactProject","branch":"main","bytes":472085}
-2026-08-22T18:57:36.500Z [INFO] Repository parsed {"repo":"gautamvaishnav1/firstReactProject","files":16,"babel":16,"fallback":0,"routes":2,"models":0,"truncated":false}
-2026-08-22T18:57:37.127Z [WARN] LLM architect failed, falling back to heuristic mode {"error":"LLM API error (429)"}
-(node:24776) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
-2026-08-22T18:57:37.145Z [INFO] Analysis completed {"analysisId":"6a89f11e9b04e7b54b11b368","repo":"gautamvaishnav1/firstReactProject","engine":"heuristic","components":4,"connections":2,"durationMs":2251}
-2026-08-22T18:57:37.898Z [HTTP] GET /api/v1/analyses/6a89f11e9b04e7b54b11b368/status -> 200 (10ms)
-2026-08-22T18:57:37.914Z [HTTP] GET /api/v1/projects/6a89c763fba6f11f175c0fbc/architecture -> 200 (11ms)
-2026-08-22T22:08:45.365Z [HTTP] GET / -> 404 (146ms)
-2026-08-22T22:08:55.947Z [HTTP] GET /api/v1/featured-rooms-list -> 401 (61ms)
-2026-08-22T22:09:17.015Z [HTTP] GET / -> 404 (3ms)
-2026-08-22T22:09:17.640Z [HTTP] POST /api/v1/auth/register -> 400 (314ms)
-2026-08-22T22:09:26.552Z [HTTP] POST /api/v1/auth/register -> 400 (9ms)
-2026-08-22T22:09:35.620Z [HTTP] POST /api/v1/auth/register -> 400 (4ms)
-2026-08-22T22:09:47.559Z [HTTP] POST /api/v1/auth/register -> 409 (330ms)
-(node:24776) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
-2026-08-22T22:10:09.372Z [WARN] [DEV MAIL] To:gautamvaishnav5@gmail.com | Verify your Software World account | Your Software World verification code is: 269186
 
-It expires in 10 minutes. If you did not request this, ignore this email.
-2026-08-22T22:10:09.378Z [HTTP] POST /api/v1/auth/register -> 201 (475ms)
-2026-08-22T22:10:28.125Z [HTTP] POST /api/v1/auth/verify-otp -> 200 (192ms)
+> frontend@0.0.0 dev
+> vite
+
+
+  [32m[1mVITE[22m v8.2.2[39m  [2mready in [0m[1m2115[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5199[22m/[39m
+[2m  [32m➜[39m  [1mNetwork[22m[2m: use [22m[1m--host[22m[2m to expose[22m
+[2m[32m  ➜[39m[22m[2m  press [22m[1mh + enter[22m[2m to show help[22m
+[2m5:24:48 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+[2m5:24:49 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:49 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:49 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:49 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:49 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:49 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:49 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:49 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:49 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/texture-a.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/texture-b.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/texture-c.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/texture-d.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/texture-e.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/texture-f.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/texture-g.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/texture-h.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/texture-i.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/texture-j.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/texture-k.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/texture-l.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/texture-m.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/texture-n.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/texture-o.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/texture-p.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/texture-q.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/texture-r.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:24:50 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mTHREE.GLTFLoader: Couldn't load texture Textures/colormap.png
+[2m5:25:03 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m5:32:10 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m5:32:10 AM[22m [31m[1m[vite][22m[39m [31mws proxy socket error:[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:02:00 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/ui/HUD.tsx, /src/components/AuthModal.tsx, /src/index.css[22m
+[2m6:02:04 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m6:02:26 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/ui/HUD.tsx, /src/index.css[22m
+[2m6:03:54 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/ui/HUD.tsx, /src/index.css[22m
+[2m6:04:26 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/ui/HUD.tsx, /src/index.css[22m
+[2m6:04:59 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m6:05:02 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m6:06:52 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mdist/index.html[22m
+[2m6:06:58 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mdist/index.html[22m
+[2m6:17:01 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:17:02 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:17:04 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:17:16 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:17:18 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:17:20 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:17:38 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:17:38 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:17:41 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:18:43 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:18:44 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:18:46 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:18:50 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:19:05 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:19:06 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:19:09 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:19:18 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/three/CityScene.tsx, /src/ui/HUD.tsx, /src/index.css[22m
+[2m6:19:20 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m6:19:33 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/ui/HUD.tsx, /src/index.css[22m
+[2m6:19:39 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:19:40 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:19:41 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/analyses/6a8a438c1e0e04c0c01300fd/status[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:19:42 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:19:49 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:19:50 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:19:52 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:19:54 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:20:02 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:20:04 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:20:06 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:20:07 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/auth/login[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:20:08 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/projects/6a8a3d504c898788f282c525/architecture[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:20:08 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/projects/6a8a3d504c898788f282c525/chat[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:20:18 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:20:19 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:20:19 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/analyses/6a8a43c6dd431df4da1d5894/status[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:20:21 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/analyses/6a8a43c6dd431df4da1d5894/status[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:20:22 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:20:33 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:20:34 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/analyses/6a8a43c6dd431df4da1d5894/status[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:20:35 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:20:36 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/analyses/6a8a43c6dd431df4da1d5894/status[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:20:36 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:20:38 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/analyses/6a8a43c6dd431df4da1d5894/status[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:20:49 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/ui/HUD.tsx, /src/index.css[22m
+[2m6:21:11 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/ui/HUD.tsx, /src/index.css[22m
+[2m6:23:17 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/ui/HUD.tsx, /src/index.css[22m
+[2m6:25:18 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mdist/index.html[22m
+[2m6:25:24 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mdist/index.html[22m
+[2m6:27:28 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m6:28:41 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m6:28:42 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m6:28:42 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m6:40:42 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css[22m
+[2m6:40:52 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/three/CityScene.tsx, /src/ui/HUD.tsx, /src/index.css[22m
+[2m6:40:55 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m6:41:02 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/three/CityScene.tsx, /src/ui/HUD.tsx, /src/index.css[22m
+[2m6:41:03 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m6:41:23 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/three/CityScene.tsx, /src/ui/HUD.tsx, /src/index.css[22m
+[2m6:41:24 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m6:41:32 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/three/CityScene.tsx, /src/ui/HUD.tsx, /src/index.css[22m
+[2m6:41:33 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m6:41:58 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/ui/HUD.tsx, /src/three/CityScene.tsx, /src/index.css[22m
+[2m6:41:59 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m6:42:36 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/ui/HUD.tsx, /src/three/CityScene.tsx, /src/index.css[22m
+[2m6:42:39 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m6:42:51 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/three/Infrastructure.tsx, /src/index.css[22m
+[2m6:43:01 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/three/Infrastructure.tsx, /src/index.css[22m
+[2m6:43:40 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/ui/HUD.tsx, /src/index.css[22m
+[2m6:44:00 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/ui/HUD.tsx, /src/index.css[22m
+[2m6:45:00 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mdist/index.html[22m
+[2m6:45:04 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mdist/index.html[22m
+[2m6:49:15 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m6:51:29 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m6:51:42 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m6:51:54 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m6:57:15 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:57:17 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:57:20 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:57:24 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m6:58:55 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m6:58:56 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m7:00:22 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m7:00:28 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m7:00:33 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m7:00:33 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m7:00:34 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m7:00:34 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m7:00:34 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m7:00:34 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m7:00:34 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m7:00:34 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m7:00:42 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m7:00:42 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m7:00:43 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m7:00:43 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m7:00:43 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m7:00:43 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m7:00:45 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m7:01:42 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m7:01:57 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m7:04:53 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m7:04:56 AM[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m7:07:05 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m7:07:48 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.
+[2m7:26:39 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.

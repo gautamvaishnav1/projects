@@ -3,17 +3,22 @@ import type { ProjectDocument } from "./project.model";
 import { ProjectModel } from "./project.model";
 import type { CreateProjectInput } from "./project.validation";
 
+export interface CreateProjectResult {
+  project: ProjectDocument;
+  /** True when a project for this GitHub URL already exists (no error thrown). */
+  existed: boolean;
+}
+
 export async function createProject(
   userId: string,
   input: CreateProjectInput
-): Promise<ProjectDocument> {
-  const duplicate = await ProjectModel.findOne({ owner: userId, repoUrl: input.repoUrl })
-    .lean()
-    .catch(() => null);
+): Promise<CreateProjectResult> {
+  const duplicate = await ProjectModel.findOne({ owner: userId, repoUrl: input.repoUrl });
   if (duplicate) {
-    throw ApiError.conflict("A project for this repository URL already exists");
+    return { project: duplicate, existed: true };
   }
-  return ProjectModel.create({ ...input, owner: userId });
+  const project = await ProjectModel.create({ ...input, owner: userId });
+  return { project, existed: false };
 }
 
 export async function listProjects(userId: string): Promise<unknown[]> {

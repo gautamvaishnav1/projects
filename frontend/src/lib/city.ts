@@ -1,30 +1,33 @@
 import { useMemo } from "react";
 import { buildLayout } from "./layout";
 import { useCity } from "../store/useCity";
-import type { CityJSON, Kind, Stack } from "../types";
+import type { CityJSON, Kind, Stack, BuildingNode } from "../types";
 
 /* ── Backend architecture payload → CityJSON adapter ────────────── */
 
-interface BackendComponent {
+export interface BackendComponent {
   id: string;
   name: string;
   type: string;
   description?: string;
   district: string;
   files?: Array<{ path: string; lines: number; functions?: string[] }>;
+  visual?: { complexity?: number; importance?: number };
+  dependencies?: { imports?: string[]; uses?: string[] };
 }
 
-interface BackendConnection {
+export interface BackendConnection {
   id: string;
   from: string;
   to: string;
   type?: string;
 }
 
-interface BackendArchitecture {
+export interface BackendArchitecture {
   analysisId: string;
   projectId: string;
   repoInfo?: { fullName?: string; name?: string; defaultBranch?: string; techStack?: { languages?: string[] } | null } | null;
+  stats?: { aiEngine?: string; filesParsedBabel?: number; scannedFiles?: number; bottlenecks?: string[] } | null;
   districts?: Array<{ id: string; name: string }>;
   architecture: { components: BackendComponent[]; connections: BackendConnection[] };
 }
@@ -54,25 +57,44 @@ function edgeKind(type: string | undefined): "http" | "query" | "import" {
 }
 
 /** Converts the validated CityWorld payload from
- *  GET /api/v1/projects/:id/architecture into the renderer's CityJSON. */
+ *  GET /api/v1/projects/:id/architecture into the renderer's CityJSON.
+ *  Every analysis signal the backend computed (complexity, importance,
+ *  bottlenecks, files, functions, npm imports) flows through to the 3D city. */
 export function architectureToCity(data: BackendArchitecture): CityJSON {
   const components = data.architecture.components ?? [];
+  const bottleneckIds = new Set(data.stats?.bottlenecks ?? []);
   const districts = (data.districts ?? []).map((d) => ({
     id: d.id,
     name: d.name,
     stack: DISTRICT_STACK[d.id] ?? "backend",
     buildings: components
       .filter((c) => c.district === d.id)
-      .map((c) => ({
-        id: c.id,
-        name: c.name,
-        kind: kindFor(c.type),
-        loc: (c.files ?? []).reduce((a, f) => a + (f.lines ?? 0), 0),
-        health: "ok" as const,
-        functions: Array.from(new Set((c.files ?? []).flatMap((f) => f.functions ?? [])))
-          .slice(0, 12)
-          .map((name) => ({ name, args: "", returns: "—", purpose: c.description ?? "" })),
-      })),
+      .map((c) => {
+        const fileLines = (c.files ?? []).reduce((a, f) => a + (f.lines ?? 0), 0);
+        // hotspot ranking mirrors the backend: explicit bottleneck list first,
+        // then the same complexity >= 60 threshold
+        const complexity = c.visual?.complexity;
+        const health: BuildingNode["health"] = bottleneckIds.has(c.id)
+          ? "error"
+          : (complexity ?? 0) >= 60
+            ? "warn"
+            : "ok";
+        return {
+          id: c.id,
+          name: c.name,
+          kind: kindFor(c.type),
+          loc: fileLines,
+          health,
+          functions: Array.from(new Set((c.files ?? []).flatMap((f) => f.functions ?? [])))
+            .slice(0, 12)
+            .map((name) => ({ name, args: "", returns: "—", purpose: c.description ?? "" })),
+          description: c.description,
+          complexity,
+          importance: c.visual?.importance,
+          filesCount: (c.files ?? []).length || undefined,
+          imports: c.dependencies?.imports,
+        };
+      }),
   }));
 
   return {

@@ -22,7 +22,13 @@ export default function App() {
   useEffect(() => {
     const onHash = () => setView(location.hash === "#app" ? "app" : "landing");
     window.addEventListener("hashchange", onHash);
-    return () => window.removeEventListener("hashchange", onHash);
+    // HUD can request the auth modal (e.g. "Build City" while signed out)
+    const openAuth = () => setAuthOpen(true);
+    window.addEventListener("cc-open-auth", openAuth);
+    return () => {
+      window.removeEventListener("hashchange", onHash);
+      window.removeEventListener("cc-open-auth", openAuth);
+    };
   }, []);
 
   const launch = useCallback(() => {

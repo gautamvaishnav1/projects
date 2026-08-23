@@ -6,7 +6,6 @@ import type { CityLayout } from "../lib/layout";
 import { useCity } from "../store/useCity";
 import { ENV } from "./env";
 import { grassTexture, asphaltTexture, groundTextures } from "./textures";
-import { SAMPLE_CITY } from "../data/sampleCity";
 import { TREES, ROCKS, BUSHES_PLANTS, PROP, BARRIER, FENCE, CONE, pick } from "./assets";
 
 const seg = (a: [number, number], b: [number, number]) => { const dx = b[0] - a[0], dz = b[1] - a[1]; return { len: Math.hypot(dx, dz), rot: -Math.atan2(dz, dx), mid: [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] }; };
@@ -170,16 +169,18 @@ export function Decor({ L }: { L: CityLayout }) {
 }
 
 export function Links({ L }: { L: CityLayout }) {
-  const on = useCity((s) => s.links); if (!on) return null;
+  const on = useCity((s) => s.links);
+  const edges = useCity((s) => s.city.edges);
+  if (!on) return null;
   const COLORS = { http: "#22d3ee", query: "#4ade80", import: "#94a3b8" };
   return (
     <group>
-      {SAMPLE_CITY.edges.map((e, i) => {
+      {edges.map((e, i) => {
         const a = L.byId.get(e.from), b = L.byId.get(e.to); if (!a || !b) return null;
         const A = new THREE.Vector3(a.pos[0], 2, a.pos[2]), B = new THREE.Vector3(b.pos[0], 2, b.pos[2]);
         const mid = A.clone().lerp(B, 0.5); mid.y = 6 + A.distanceTo(B) * 0.18;
         const pts = new THREE.QuadraticBezierCurve3(A, mid, B).getPoints(24);
-        return <Line key={i} points={pts} color={COLORS[e.kind]} lineWidth={1.2} transparent opacity={0.55} />;
+        return <Line key={`${e.from}-${e.to}-${i}`} points={pts} color={COLORS[e.kind]} lineWidth={1.2} transparent opacity={0.55} />;
       })}
     </group>
   );
