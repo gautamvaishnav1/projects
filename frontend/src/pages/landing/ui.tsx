@@ -374,8 +374,8 @@ export function AtlasPlate() {
             <g key={b.n}>
               {/* district slab */}
               <rect x="26" y={b.y} width="748" height="104" fill="#141414" fillOpacity="0.035" stroke="#141414" strokeOpacity="0.35" strokeWidth="1" />
-              {/* district label — inside the slab, above the building line */}
-              <text x="36" y={b.y + 16} fontFamily="Archivo, sans-serif" fontWeight="900" fontSize="11" fill="#141414" letterSpacing="1.5">
+              {/* district label — on the building grid, clear of the west corridor */}
+              <text x="150" y={b.y + 16} fontFamily="Archivo, sans-serif" fontWeight="900" fontSize="11" fill="#141414" letterSpacing="1.5">
                 {b.n} · {b.name}
                 <tspan fill="#e30613"> — {b.tech}</tspan>
               </text>
