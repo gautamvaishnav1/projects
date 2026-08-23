@@ -928,7 +928,7 @@ function Minimap() {
   }, [focus, LAYOUT, healthEvents]);
 
   return (
-    <div className="pointer-events-auto absolute bottom-[118px] left-3 select-none max-lg:hidden">
+    <div className="pointer-events-auto absolute bottom-[118px] left-3 w-[179px] select-none max-lg:hidden">
       {/* plate frame — printed pass around the map */}
       <div className="border-[1.5px] border-black-ink bg-paper-deep p-1.5 shadow-[4px_4px_0_rgba(0,0,0,.35)]">
         <div className="mb-1.5 flex items-center justify-between border-b-[1.5px] border-black-ink px-1 pb-1">
