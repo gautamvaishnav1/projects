@@ -144,7 +144,7 @@ function WeatherPanel() {
           ? "DRIZZLE — WARNINGS PRESENT"
           : "CLEAR — ALL SYSTEMS HEALTHY";
   return (
-    <div className="pointer-events-auto absolute right-3 top-[248px] w-52 max-lg:hidden rounded-none border-[1.5px] border-black-ink bg-paper/95 p-3 xl:top-[300px]">
+    <div className="pointer-events-auto w-52 self-end rounded-none border-[1.5px] border-black-ink bg-paper/95 p-3 max-lg:hidden">
       <div className="caption-caps mb-2 flex items-baseline justify-between font-bold">
         <span>ATMOSPHERE</span>
         <span className="text-[9px] text-black-ink/55">{meaning}</span>
@@ -201,7 +201,7 @@ export function AlertStack() {
   const shown = events.slice(-3);
   if (shown.length === 0) return null;
   return (
-    <div className="pointer-events-auto absolute right-3 top-16 z-30 grid w-80 max-w-[calc(100vw-24px)] gap-2 max-md:left-3 max-md:right-3 max-md:w-auto">
+    <div className="pointer-events-auto grid w-full gap-2">
       {shown.map((ev) => {
         const b = L.byId.get(ev.buildingId);
         return (
@@ -577,7 +577,7 @@ export function HUD() {
       </div>
 
       {/* notifications bottom-right */}
-      <div className="absolute bottom-4 right-3 grid w-72 gap-2 pointer-events-auto max-md:bottom-40 max-md:w-auto max-md:left-3 max-md:right-3">
+      <div className="pointer-events-auto absolute bottom-4 right-3 z-30 grid w-72 gap-2 max-md:bottom-40 max-md:left-3 max-md:right-3 max-md:w-auto">
         {s.notifications.map((n) => (
           <button
             key={n.id}
@@ -591,101 +591,104 @@ export function HUD() {
         ))}
       </div>
 
-      {/* inspector */}
-      {sel && (
-        <div style={{ top: 88 + Math.min(s.healthEvents.length, 3) * 84 }}
-        className="absolute right-3 z-20 max-h-[62vh] w-80 max-w-[calc(100vw-24px)] overflow-auto rounded-xl border-[1.5px] border-black-ink bg-paper/97 p-4 text-sm pointer-events-auto max-md:left-3 max-md:right-3 max-md:!top-32 max-md:z-40 max-md:max-h-[46vh]">
-          <div className="flex justify-between items-start">
-            <div>
-              <div className="font-bold text-signal">{sel.name}</div>
-              <div className="text-xs text-black-ink/55">
-                {sel.districtName} · {sel.kind} · {sel.loc} LOC ·{" "}
-                <span className={sel.health === "ok" ? "text-black-ink" : "text-signal"}>{sel.health}</span>
+      {/* right rail — alerts, inspector and atmosphere stack in one flow column
+          so they can never overlap each other regardless of alert count */}
+      <div className="pointer-events-none absolute right-3 top-16 z-30 flex max-h-[calc(100vh-160px)] w-80 max-w-[calc(100vw-24px)] flex-col items-stretch gap-2 overflow-y-auto max-md:left-3 max-md:right-3 max-md:w-auto">
+        <AlertStack />
+        {/* inspector */}
+        {sel && (
+          <div
+          className="z-20 max-h-[62vh] w-full overflow-auto rounded-xl border-[1.5px] border-black-ink bg-paper/97 p-4 text-sm pointer-events-auto max-md:max-h-[46vh]">
+            <div className="flex justify-between items-start">
+              <div>
+                <div className="font-bold text-signal">{sel.name}</div>
+                <div className="text-xs text-black-ink/55">
+                  {sel.districtName} · {sel.kind} · {sel.loc} LOC ·{" "}
+                  <span className={sel.health === "ok" ? "text-black-ink" : "text-signal"}>{sel.health}</span>
+                </div>
               </div>
-            </div>
-            <button onClick={() => s.select(null)} className="text-black-ink/45 hover:text-black-ink">
-              ✕
-            </button>
-          </div>
-
-          {/* CONNECTIONS */}
-          <div className="mt-3 text-xs font-bold text-black-ink/55">CONNECTIONS</div>
-          <div className="mt-1 grid grid-cols-2 gap-2 text-[11px]">
-            <div className="rounded-lg border border-black-ink/40 bg-paper-deep p-2">
-              <div className="mb-1 font-bold">◀ CALLERS ({cityEdges.filter((e) => e.to === sel.id).length})</div>
-              {cityEdges.filter((e) => e.to === sel.id).map((e) => (
-                <button key={e.from + e.to} onClick={() => pick(e.from)} className="block w-full truncate text-left underline decoration-dotted hover:text-signal">
-                  {layout.byId.get(e.from)?.name ?? e.from}
-                </button>
-              ))}
-              {cityEdges.filter((e) => e.to === sel.id).length === 0 && <span className="text-black-ink/40">client requests only</span>}
-            </div>
-            <div className="rounded-lg border border-black-ink/40 bg-paper-deep p-2">
-              <div className="mb-1 font-bold">CALLS ({cityEdges.filter((e) => e.from === sel.id).length}) ▶</div>
-              {cityEdges.filter((e) => e.from === sel.id).map((e) => (
-                <button key={e.from + e.to} onClick={() => pick(e.to)} className="block w-full truncate text-left underline decoration-dotted hover:text-signal">
-                  {layout.byId.get(e.to)?.name ?? e.to}
-                </button>
-              ))}
-              {cityEdges.filter((e) => e.from === sel.id).length === 0 && <span className="text-black-ink/40">nothing downstream</span>}
-            </div>
-          </div>
-
-          <div className="mt-3 text-xs font-bold text-black-ink/55">FUNCTIONS</div>
-          {sel.functions.length === 0 && <div className="text-xs text-black-ink/45">none extracted</div>}
-          {sel.functions.map((f) => (
-            <button
-              key={f.name}
-              onClick={() => s.select(sel.id, f.name)}
-              className={`mt-1 block w-full rounded border px-2 py-1 text-left text-xs ${
-                s.selectedFn === f.name ? "border-signal bg-signal/10" : "border-black-ink/40"
-              }`}
-            >
-              {f.name}({f.args})
-            </button>
-          ))}
-          {selFn && (
-            <div className="mt-3 rounded-lg border-[1.5px] border-black-ink bg-paper-deep p-3 text-xs">
-              <div className="mb-1 font-bold text-signal">WHAT THIS DOES</div>
-              {explain(sel, selFn)}
-            </div>
-          )}
-
-          {/* AI GUIDE */}
-          <div className="mt-3 rounded-lg border-[1.5px] border-black-ink bg-black-ink p-3 text-xs text-paper">
-            <div className="mb-1 caption-caps flex items-center justify-between font-bold">
-              <span className="text-signal">🤖 AI GUIDE — DEEP ANALYSIS</span>
-              <button onClick={() => void askAi(sel)} disabled={aiBusy}
-                className="rounded border border-paper/40 px-2 py-0.5 text-[10px] font-bold text-paper hover:border-signal hover:text-signal disabled:opacity-50">
-                {aiBusy ? "THINKING…" : "ANALYZE"}
+              <button onClick={() => s.select(null)} className="text-black-ink/45 hover:text-black-ink">
+                ✕
               </button>
             </div>
-            {!aiText && !aiBusy && (
-              <p className="text-paper/60">
-                Ask the AI about “{sel.name}”: what it does, how it connects, hidden risks and better patterns.
-              </p>
+
+            {/* CONNECTIONS */}
+            <div className="mt-3 text-xs font-bold text-black-ink/55">CONNECTIONS</div>
+            <div className="mt-1 grid grid-cols-2 gap-2 text-[11px]">
+              <div className="rounded-lg border border-black-ink/40 bg-paper-deep p-2">
+                <div className="mb-1 font-bold">◀ CALLERS ({cityEdges.filter((e) => e.to === sel.id).length})</div>
+                {cityEdges.filter((e) => e.to === sel.id).map((e) => (
+                  <button key={e.from + e.to} onClick={() => pick(e.from)} className="block w-full truncate text-left underline decoration-dotted hover:text-signal">
+                    {layout.byId.get(e.from)?.name ?? e.from}
+                  </button>
+                ))}
+                {cityEdges.filter((e) => e.to === sel.id).length === 0 && <span className="text-black-ink/40">client requests only</span>}
+              </div>
+              <div className="rounded-lg border border-black-ink/40 bg-paper-deep p-2">
+                <div className="mb-1 font-bold">CALLS ({cityEdges.filter((e) => e.from === sel.id).length}) ▶</div>
+                {cityEdges.filter((e) => e.from === sel.id).map((e) => (
+                  <button key={e.from + e.to} onClick={() => pick(e.to)} className="block w-full truncate text-left underline decoration-dotted hover:text-signal">
+                    {layout.byId.get(e.to)?.name ?? e.to}
+                  </button>
+                ))}
+                {cityEdges.filter((e) => e.from === sel.id).length === 0 && <span className="text-black-ink/40">nothing downstream</span>}
+              </div>
+            </div>
+
+            <div className="mt-3 text-xs font-bold text-black-ink/55">FUNCTIONS</div>
+            {sel.functions.length === 0 && <div className="text-xs text-black-ink/45">none extracted</div>}
+            {sel.functions.map((f) => (
+              <button
+                key={f.name}
+                onClick={() => s.select(sel.id, f.name)}
+                className={`mt-1 block w-full rounded border px-2 py-1 text-left text-xs ${
+                  s.selectedFn === f.name ? "border-signal bg-signal/10" : "border-black-ink/40"
+                }`}
+              >
+                {f.name}({f.args})
+              </button>
+            ))}
+            {selFn && (
+              <div className="mt-3 rounded-lg border-[1.5px] border-black-ink bg-paper-deep p-3 text-xs">
+                <div className="mb-1 font-bold text-signal">WHAT THIS DOES</div>
+                {explain(sel, selFn)}
+              </div>
             )}
-            {aiBusy && (
-              <p className="animate-pulse text-paper/60">
-                Scanning {sel.name}, its {cityEdges.filter((e) => e.from === sel.id || e.to === sel.id).length} links and district context…
-              </p>
-            )}
-            {aiText && <p className="whitespace-pre-wrap leading-relaxed text-paper/90">{aiText}</p>}
+
+            {/* AI GUIDE */}
+            <div className="mt-3 rounded-lg border-[1.5px] border-black-ink bg-black-ink p-3 text-xs text-paper">
+              <div className="mb-1 caption-caps flex items-center justify-between font-bold">
+                <span className="text-signal">🤖 AI GUIDE — DEEP ANALYSIS</span>
+                <button onClick={() => void askAi(sel)} disabled={aiBusy}
+                  className="rounded border border-paper/40 px-2 py-0.5 text-[10px] font-bold text-paper hover:border-signal hover:text-signal disabled:opacity-50">
+                  {aiBusy ? "THINKING…" : "ANALYZE"}
+                </button>
+              </div>
+              {!aiText && !aiBusy && (
+                <p className="text-paper/60">
+                  Ask the AI about “{sel.name}”: what it does, how it connects, hidden risks and better patterns.
+                </p>
+              )}
+              {aiBusy && (
+                <p className="animate-pulse text-paper/60">
+                  Scanning {sel.name}, its {cityEdges.filter((e) => e.from === sel.id || e.to === sel.id).length} links and district context…
+                </p>
+              )}
+              {aiText && <p className="whitespace-pre-wrap leading-relaxed text-paper/90">{aiText}</p>}
+            </div>
+
+            {/* improvement guide shortcut */}
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent("cc-open-guide"))}
+              className="mt-2 block w-full rounded-lg border-[1.5px] border-black-ink bg-paper-deep px-3 py-2 text-left text-xs font-bold hover:border-signal"
+            >
+              📐 Open full IMPROVEMENT GUIDE →
+            </button>
           </div>
-
-          {/* improvement guide shortcut */}
-          <button
-            onClick={() => window.dispatchEvent(new CustomEvent("cc-open-guide"))}
-            className="mt-2 block w-full rounded-lg border-[1.5px] border-black-ink bg-paper-deep px-3 py-2 text-left text-xs font-bold hover:border-signal"
-          >
-            📐 Open full IMPROVEMENT GUIDE →
-          </button>
-        </div>
-      )}
-
-      <AlertStack />
+        )}
+        <WeatherPanel />
+      </div>
       <LegendPanel />
-      <WeatherPanel />
       <Minimap />
       <LogPanel />
       <ImprovementGuide />
@@ -736,7 +739,7 @@ function ImprovementGuide() {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="pointer-events-auto absolute bottom-16 right-3 rounded-xl border-[1.5px] border-black-ink bg-paper/95 px-3 py-2 text-xs font-bold hover:border-signal max-lg:hidden"
+        className="pointer-events-auto absolute bottom-[240px] right-[344px] rounded-xl border-[1.5px] border-black-ink bg-paper/95 px-3 py-2 text-xs font-bold hover:border-signal max-lg:hidden"
       >
         📐 Improvement Guide
       </button>
