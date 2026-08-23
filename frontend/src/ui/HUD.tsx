@@ -372,9 +372,11 @@ export function HUD() {
   useEffect(() => {
     const st = () => useCity.getState();
     const runLogin = () => {
-      st().patch({ traffic: true, following: true });
-      st().notify("🚗 POST /api/auth/login dispatched");
-      pushLog("fe", "RUN ▸ POST /api/auth/login dispatched", "info");
+      const st2 = st();
+      st2.patch({ traffic: true, following: true });
+      st2.dispatchMission("login"); // spawns the slow courier car w/ info cards
+      st2.notify("🚗 POST /api/v1/auth/login dispatched — courier en route");
+      pushLog("fe", "RUN ▸ courier dispatched · POST /api/v1/auth/login", "info");
     };
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement | null;
@@ -569,8 +571,9 @@ export function HUD() {
         <button
           onClick={() => {
             s.patch({ traffic: true, following: true });
-            s.notify("🚗 POST /api/auth/login dispatched");
-            pushLog("fe", "RUN ▸ POST /api/auth/login dispatched", "info");
+            s.dispatchMission("login"); // courier car w/ floating info cards
+            s.notify("🚗 POST /api/v1/auth/login dispatched — courier en route");
+            pushLog("fe", "RUN ▸ courier dispatched · POST /api/v1/auth/login", "info");
           }}
           id="cc-run-btn" className="rounded-xl border-[1.5px] border-black-ink bg-black-ink px-3 py-2 text-sm font-bold text-paper shadow-[4px_4px_0_rgba(20,20,20,.35)] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_rgba(20,20,20,.35)] md:px-5 md:py-3"
         >

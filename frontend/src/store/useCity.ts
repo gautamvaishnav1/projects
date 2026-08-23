@@ -12,6 +12,9 @@ export interface HealthEvent {
   at: number;
 }
 
+/** a dispatched request — one car drives a full API flow through the city */
+export interface Mission { flow: string; startedAt: number }
+
 interface S {
   city: CityJSON;
   selectedId: string | null;
@@ -45,9 +48,13 @@ interface S {
   }[];
   /** broken-pipeline feed — powers top-right alert dialogs + floating pins */
   healthEvents: HealthEvent[];
+  /** dispatched request missions — each spawns one slow courier car with info cards */
+  mission: Mission | null;
   select: (id: string | null, fn?: string | null) => void;
   setFocus: (x: number, z: number) => void;
   patch: (p: Partial<S>) => void;
+  dispatchMission: (flow: string) => void;
+  endMission: () => void;
   notify: (text: string, target?: string, type?: "info" | "success" | "error") => void;
   dismiss: (id: number) => void;
   setCity: (city: CityJSON) => void;
@@ -106,10 +113,15 @@ export const useCity = create<S>()((set) => ({
   traceStep: -1,
   notifications: [],
   healthEvents: healthFromCity(SAMPLE_CITY),
+  mission: null,
   select: (id, fn = null) => set({ selectedId: id, selectedFn: fn }),
   setFocus: (x, z) =>
     set((s) => ({ focus: { x, z, key: (s.focus?.key ?? 0) + 1 } })),
   patch: (p) => set(p),
+  dispatchMission: (flow) =>
+    // re-dispatch = restart the courier from the door (fresh key remounts the car)
+    set((s) => ({ mission: { flow, startedAt: (s.mission?.startedAt ?? 0) + 1 } })),
+  endMission: () => set({ mission: null }),
   recordLatency: (ms) =>
     set({ apiLatencyMs: Math.round(ms), latency: speedFor(ms) }),
   pushHealth: (e) =>

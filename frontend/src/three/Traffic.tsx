@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Html, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
@@ -109,6 +109,192 @@ function Car({ curve, offset, latencyKey, hero, stuck, color }: any) {
   );
 }
 
+// ─── request missions ────────────────────────────────────────────────────────
+// A dispatched API call becomes a courier car: it leaves the origin building's
+// door, cruises the flow lane SLOWLY, decelerates into every gateway, dwells
+// under a floating card explaining exactly what happens at that hop, then
+// reports 200 OK at the destination and dematerialises.
+
+type Verb = "dispatch" | "gate" | "arrive" | "work" | "verify" | "query" | "done";
+const VERB_COLOR: Record<Verb, string> = {
+  dispatch: "#0891b2",
+  gate: "#d97706",
+  arrive: "#ea580c",
+  work: "#db2777",
+  verify: "#7c3aed",
+  query: "#059669",
+  done: "#16a34a",
+};
+
+interface HopSpec {
+  /** stop beside this building (u computed from its layout position) */
+  buildingId?: string;
+  /** …or at a named landmark on the lane */
+  landmark?: "start" | "toll" | "end";
+  title: string;
+  verb: Verb;
+  detail: string[];
+}
+
+const MISSION_SPECS: Record<string, HopSpec[]> = {
+  login: [
+    { landmark: "start", title: "Login.jsx · handleSubmit()", verb: "dispatch", detail: ["Sign-in clicked — React validates the", "email + password shape client-side,", "then dispatches POST /api/v1/auth/login."] },
+    { landmark: "toll", title: "JWT Toll Plaza", verb: "gate", detail: ["The river crossing is paid territory:", "unauthenticated cars must stop here.", "Credentials are exchanged for a ticket", "(Authorization header) beyond this point."] },
+    { buildingId: "be-authroute", title: "authRoutes.js", verb: "arrive", detail: ["Express matches POST /auth/login.", "Route-level validators run, then the", "request is handed to the controller."] },
+    { buildingId: "be-authctrl", title: "authController.js", verb: "work", detail: ["Parses + normalises the body,", "wraps errors for errorMiddleware,", "delegates verification to the service."] },
+    { buildingId: "be-authsvc", title: "authService.js", verb: "verify", detail: ["Password compared against the bcrypt", "hash · createToken() signs a JWT", "(HS256, user id, 24h expiry)."] },
+    { buildingId: "db-users", title: "users collection", verb: "query", detail: ["SELECT … WHERE email = ? over the", "underground query pipe — the user row", "rides back up to authService."] },
+    { landmark: "end", title: "200 OK · session created", verb: "done", detail: ["AuthResult { token, user } returns;", "AuthContext hydrates the session,", "gates lift app-wide. Welcome in."] },
+  ],
+};
+
+interface Hop extends HopSpec { u: number }
+
+function stopsFor(curve: THREE.CatmullRomCurve3, L: CityLayout, flow: string): Hop[] {
+  const spec = MISSION_SPECS[flow];
+  if (!spec) return [];
+  const N = 480;
+  const pts: THREE.Vector3[] = [];
+  for (let i = 0; i <= N; i++) pts.push(curve.getPointAt(i / N));
+  const uFor = (x: number, z: number) => {
+    const t = new THREE.Vector3(x, 0, z);
+    let best = 0, bd = Infinity;
+    for (let i = 0; i <= N; i++) {
+      const d = pts[i].distanceToSquared(t);
+      if (d < bd) { bd = d; best = i; }
+    }
+    return best / N;
+  };
+  const hops: Hop[] = spec.map((h) => ({
+    ...h,
+    u: h.buildingId
+      ? uFor(L.byId.get(h.buildingId)?.pos[0] ?? 0, L.byId.get(h.buildingId)?.pos[2] ?? 0)
+      : h.landmark === "toll"
+        ? uFor(L.toll.x, L.toll.z)
+        : h.landmark === "start"
+          ? 0
+          : h.landmark === "end"
+            ? 0.975 // final 200-OK report at the lane tip
+            : 0, // unused
+  }));
+  // clamp inside the drivable range, THEN enforce strictly increasing stops
+  for (const h of hops) h.u = THREE.MathUtils.clamp(h.u, 0, 0.975);
+  let prev = -0.02; // breathing room between consecutive stops
+  for (const h of hops) { h.u = Math.min(Math.max(h.u, prev + 0.04), 0.975); prev = h.u; }
+  return hops;
+}
+
+function MissionCard({ hop, idx, total }: { hop: Hop; idx: number; total: number }) {
+  return (
+    <div className="mc-wrap pointer-events-none w-64 select-none">
+      <style>{`@keyframes mcIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}.mc-wrap{animation:mcIn .28s ease-out}`}</style>
+      <div className="rounded-none border-[1.5px] border-black-ink bg-paper/95 shadow-[4px_4px_0_rgba(20,20,20,.45)]">
+        <div className="flex items-center gap-1.5 border-b-[1.5px] border-black-ink px-2 py-1" style={{ background: VERB_COLOR[hop.verb] }}>
+          <span className="font-mono text-[9px] font-black uppercase tracking-wider text-white">{hop.verb}</span>
+          <span className="ml-auto font-mono text-[9px] text-white/85">step {idx + 1}/{total}</span>
+        </div>
+        <div className="px-2 py-1.5">
+          <div className="font-mono text-[11px] font-bold text-black-ink">{hop.title}</div>
+          {hop.detail.map((line, i) => (
+            <div key={i} className="font-mono text-[9.5px] leading-snug text-black-ink/75">{line}</div>
+          ))}
+          <div className="mt-1.5 flex gap-1">
+            {Array.from({ length: total }, (_, i) => (
+              <span key={i} className="h-1 flex-1" style={{ background: i <= idx ? VERB_COLOR[hop.verb] : "rgba(20,20,20,.15)" }} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const MISSION_CRUISE = 0.03;   // u/sec — a stately roll, ~½ lap per minute
+const MISSION_DWELL = 2.6;     // sec paused under each gateway card
+// ?fm=1 → verification fast-forward (10× cruise, snap dwells)
+const FM = typeof location !== "undefined" && new URLSearchParams(location.search).has("fm");
+const M_CRUISE = FM ? 0.3 : MISSION_CRUISE;
+const M_DWELL = FM ? 0.25 : MISSION_DWELL;
+
+function MissionCar({ curve, L, onEnd }: { curve: THREE.CatmullRomCurve3; L: CityLayout; onEnd: () => void }) {
+  const ref = useRef<THREE.Group>(null!);
+  const u = useRef(0);
+  const hopIdx = useRef(0);
+  const phase = useRef<"drive" | "dwell" | "done-hold">("drive");
+  const dwellT = useRef(0);
+  const [, force] = useState(0); // re-render when the active hop changes
+  const activeHop = useRef(-1);
+  const hops = useMemo(() => stopsFor(curve, L, "login"), [curve, L]);
+  const onEndRef = useRef(onEnd);
+  onEndRef.current = onEnd;
+
+  useEffect(() => () => { followTarget.active = false; }, []);
+
+  useFrame((_, rawDt) => {
+    const dt = Math.min(rawDt, 0.05);
+    if (!ref.current || hops.length === 0) return;
+    const hop = hops[Math.min(hopIdx.current, hops.length - 1)];
+
+    if (phase.current === "drive") {
+      const remain = hop.u - u.current;
+      // decelerate into the gateway — glide, never brake-check
+      const spd = remain < 0.05 ? M_CRUISE * Math.max(0.22, remain / 0.05) : M_CRUISE;
+      u.current += dt * spd;
+      if (u.current >= hop.u) { u.current = hop.u; phase.current = "dwell"; dwellT.current = 0; }
+    } else if (phase.current === "dwell") {
+      dwellT.current += dt;
+      if (dwellT.current >= M_DWELL) {
+        hopIdx.current += 1;
+        if (hopIdx.current >= hops.length) { phase.current = "done-hold"; dwellT.current = 0; }
+        else phase.current = "drive";
+      }
+    } else {
+      dwellT.current += dt;
+      if (dwellT.current > 2.8) { onEndRef.current(); return; }
+    }
+
+    if (activeHop.current !== Math.min(hopIdx.current, hops.length - 1)) {
+      activeHop.current = Math.min(hopIdx.current, hops.length - 1);
+      force((n) => n + 1);
+    }
+
+    const uu = THREE.MathUtils.clamp(u.current, 0, 0.999);
+    const p = curve.getPointAt(uu), tan = curve.getTangentAt(uu);
+    const lift = (1 - THREE.MathUtils.smoothstep(Math.abs(p.x), 4.8, 7)) * 0.35;
+    ref.current.position.set(p.x, p.y + lift, p.z);
+    ref.current.lookAt(p.clone().add(tan));
+    if (REVERSE_MODELS.has(VEHICLE_HERO)) ref.current.rotateY(Math.PI);
+    // the mission owns the follow-cam while it runs
+    followTarget.active = true;
+    followTarget.x = p.x;
+    followTarget.z = p.z;
+    (window as any).__mc = { u: +u.current.toFixed(4), hop: hopIdx.current, phase: phase.current, dwell: +dwellT.current.toFixed(2), hops: hops.map((h) => +h.u.toFixed(3)) };
+  });
+
+  if (hops.length === 0) return null;
+  const idx = Math.min(hopIdx.current, hops.length - 1);
+  const hop = hops[idx];
+  const near = phase.current !== "done-hold" ? Math.abs(hop.u - u.current) < 0.07 : false;
+  const showCard = phase.current === "dwell" || phase.current === "done-hold" || near;
+
+  return (
+    <group ref={ref}>
+      <GltfCar url={VEHICLE_HERO} color="#e11d48" />
+      <Headlights flip={REVERSE_MODELS.has(VEHICLE_HERO)} />
+      {/* request beacon */}
+      <mesh position={[0, 1.55, 0]}>
+        <sphereGeometry args={[0.09, 10, 10]} />
+        <meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={1.4 + ENV.night * 3} />
+      </mesh>
+      {showCard && (
+        <Html center distanceFactor={52} position={[0, 3.4, 0]} zIndexRange={[40, 0]}>
+          <MissionCard hop={hop} idx={idx} total={hops.length} />
+        </Html>
+      )}
+    </group>
+  );
+}
+
 /** emerald delivery truck: slow loop on the query edge (services → database platform) */
 function Truck({ curve, offset }: { curve: THREE.CatmullRomCurve3; offset: number }) {
   const ref = useRef<THREE.Group>(null!);
@@ -138,6 +324,10 @@ export function Traffic({ L }: { L: CityLayout }) {
   const traffic = useCity((s) => s.traffic);
   const failing = useCity((s) => s.failing);
   const failingId = useCity((s) => s.failingId);
+  // dispatched request → courier car (null when no mission is running)
+  const mission = useCity((s) => s.mission);
+  const endMission = useCity((s) => s.endMission);
+  const missionKey = `${mission?.flow ?? "none"}#${mission?.startedAt ?? 0}`;
 
   // curves built reactively from the active city's flows
   const flows = useCity((s) => s.city.flows);
@@ -162,6 +352,15 @@ export function Traffic({ L }: { L: CityLayout }) {
         {curves.payment && <Truck curve={curves.payment} offset={0.45} />}
         {curves.cart && <Truck curve={curves.cart} offset={0.15} />}
       </>}
+      {/* the dispatched request itself — slow courier with floating detail cards */}
+      {mission && curves[mission.flow] && (
+        <MissionCar
+          key={missionKey}
+          curve={curves[mission.flow]!}
+          L={L}
+          onEnd={() => endMission()}
+        />
+      )}
       {failing && failB && (
         <group position={[failB.pos[0], 0, failB.pos[2]]}>
           <mesh position={[0, 7, 0]}><coneGeometry args={[0.8, 1.6, 4]} /><meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={2} /></mesh>
