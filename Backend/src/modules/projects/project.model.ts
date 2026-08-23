@@ -4,6 +4,8 @@ export interface ProjectDocument extends mongoose.Document {
   name: string;
   description?: string;
   repoUrl: string;
+  /** "github" (default) or "demo" — demo projects scan the bundled ./demo dir, no download */
+  source?: "github" | "demo";
   owner: mongoose.Types.ObjectId;
   lastAnalysis?: mongoose.Types.ObjectId | null;
   createdAt: Date;
@@ -19,10 +21,11 @@ const projectSchema = new mongoose.Schema<ProjectDocument>(
       required: true,
       trim: true,
       validate: {
-        validator: (v: string) => /github\.com/i.test(v),
-        message: "repoUrl must be a GitHub repository URL"
+        validator: (v: string) => /github\.com/i.test(v) || v.startsWith("demo://"),
+        message: "repoUrl must be a GitHub repository URL (or demo:// for the bundled demo)"
       }
     },
+    source: { type: String, enum: ["github", "demo"], default: "github" },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
     lastAnalysis: { type: mongoose.Schema.Types.ObjectId, ref: "Analysis", default: null }
   },

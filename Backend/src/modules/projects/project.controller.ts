@@ -22,6 +22,7 @@ export const getOne = asyncHandler(async (req: Request, res: Response) => {
         name: project.name,
         description: project.description ?? "",
         repoUrl: project.repoUrl,
+        source: (project as unknown as { source?: string }).source ?? "github",
         lastAnalysisId: project.lastAnalysis?.toString() ?? null,
         createdAt: project.createdAt,
         updatedAt: project.updatedAt

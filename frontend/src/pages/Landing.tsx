@@ -503,6 +503,23 @@ function LaunchPanel({ onLaunch, onLaunchIntent }: { onLaunch: () => void; onLau
               Build the city ▸
             </button>
           </form>
+
+          <div className="mt-6 flex max-w-md items-center gap-3">
+            <span aria-hidden className="h-px flex-1 bg-black-ink/25" />
+            <span className="caption-caps text-[10px] font-bold text-black-ink/55">no repo handy?</span>
+            <span aria-hidden className="h-px flex-1 bg-black-ink/25" />
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              localStorage.setItem("cc-pending-repo", "demo://beach-resort");
+              onLaunch();
+            }}
+            className="btn-print ghost mt-4 w-full justify-center sm:w-auto"
+            title="Analyze the bundled Beach Resort demo — a full-stack MERN hotel booking system, no download needed"
+          >
+            🏖 Try the demo project — Beach Resort (MERN) ▸
+          </button>
         </div>
 
         <div className="col-span-12 flex flex-col items-start gap-6 lg:col-span-4 lg:col-start-9 lg:border-l lg:border-black-ink/25 lg:pl-6">

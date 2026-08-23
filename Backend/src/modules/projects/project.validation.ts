@@ -6,8 +6,12 @@ export const createProjectSchema = z.object({
   repoUrl: z
     .string()
     .trim()
-    .url("Must be a valid URL")
-    .regex(/github\.com/i, "Only GitHub repositories are supported in this MVP")
+    .refine(
+      (v) =>
+        (/^https?:\/\//i.test(v) && /github\.com/i.test(v)) || v.startsWith("demo://"),
+      "Must be a GitHub repository URL (or demo:// for the bundled demo)"
+    ),
+  source: z.enum(["github", "demo"]).optional().default("github")
 });
 
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;

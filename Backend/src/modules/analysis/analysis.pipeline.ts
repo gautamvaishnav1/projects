@@ -2,6 +2,7 @@ import type { ProjectDocument } from "../projects/project.model";
 import { AnalysisModel } from "./analysis.model";
 import type { AnalysisDocument } from "./analysis.model";
 import { downloadAndExtractRepo } from "../../infrastructure/github/github.service";
+import { loadDemoProject } from "./demo.source";
 import { parseRepository } from "../parser/parser.service";
 import { generateArchitecture } from "../ai/architect.service";
 import { buildCityWorld } from "../ai/city.builder";
@@ -79,7 +80,7 @@ interface PipelineArgs {
   repoUrl: string;
 }
 
-async function runPipeline({ analysis, projectId, analysisId, repoUrl }: PipelineArgs): Promise<void> {
+async function runPipeline({ analysis, project, projectId, analysisId, repoUrl }: PipelineArgs): Promise<void> {
   const startedAt = Date.now();
   const step = (
     stepName: string,
@@ -95,10 +96,15 @@ async function runPipeline({ analysis, projectId, analysisId, repoUrl }: Pipelin
     });
 
   emitToProject(projectId, "analysis:started", { analysisId, projectId, repoUrl });
-  step("github", { message: "Downloading repository…" }, 2);
 
-  // 1. GitHub service
-  const { dir, info, cleanedUp } = await downloadAndExtractRepo(repoUrl, analysisId);
+  // 1. Source: bundled demo dir (offline) or GitHub download
+  const isDemo = (project as unknown as { source?: string }).source === "demo"
+    || repoUrl.startsWith("demo://");
+  step(isDemo ? "demo" : "github",
+    { message: isDemo ? "Loading bundled demo project…" : "Downloading repository…" }, 2);
+  const { dir, info, cleanedUp } = isDemo
+    ? await loadDemoProject()
+    : await downloadAndExtractRepo(repoUrl, analysisId);
   try {
     // 2. Scanner + parser + analyzer (per-file fault tolerance inside)
     step("scan", { message: "Scanning .js/.jsx/.ts/.tsx files…" }, 10);

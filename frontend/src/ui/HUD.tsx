@@ -36,23 +36,28 @@ function RepoLoader() {
   async function load(urlOverride?: string) {
     const target = (urlOverride ?? q).trim();
     if (!target || busy) return;
-    if (!/^[a-z0-9-]+(\.[a-z0-9-]+)*(\/[^\s/]+)+$/i.test(target.replace(/^https?:\/\//i, ""))) {
+    const isDemo = target.startsWith("demo://");
+    if (!isDemo && !/^[a-z0-9-]+(\.[a-z0-9-]+)*(\/[^\s/]+)+$/i.test(target.replace(/^https?:\/\//i, ""))) {
       notify("⚠ Enter a repo like github.com/owner/repo", undefined, "error");
       return;
     }
     setBusy(true);
-    notify(`▸ Analyzing ${target} …`);
+    notify(isDemo ? "▸ Loading bundled demo project (Beach Resort)…" : `▸ Analyzing ${target} …`);
     try {
       if (!useAuth.getState().token) {
         throw new Error("sign in first — ⌘K → Sign in / Create account");
       }
 
-      // 1. create a project for the repo
-      const repoUrl = /^https?:\/\//i.test(target) ? target : `https://${target}`;
-      const name = decodeURIComponent(repoUrl.split("?")[0].replace(/\/+$/, "").split("/").pop() || "repo");
+      // 1. create a project for the repo (demo:// → bundled demo, no download)
+      const repoUrl = isDemo
+        ? target
+        : /^https?:\/\//i.test(target) ? target : `https://${target}`;
+      const name = isDemo
+        ? "Beach Resort (demo)"
+        : decodeURIComponent(repoUrl.split("?")[0].replace(/\/+$/, "").split("/").pop() || "repo");
       const projRes = await apiFetch("/projects", {
         method: "POST",
-        body: JSON.stringify({ name, repoUrl }),
+        body: JSON.stringify({ name, repoUrl, ...(isDemo ? { source: "demo" } : {}) }),
       });
       const projJson = await projRes.json();
       if (!projRes.ok) throw new Error(projJson.message ?? `HTTP ${projRes.status}`);
@@ -124,6 +129,14 @@ function RepoLoader() {
         }`}
       >
         {busy ? "Building…" : "Build City"}
+      </button>
+      <button
+        onClick={() => load("demo://beach-resort")}
+        disabled={busy}
+        title="Analyze the bundled Beach Resort demo project (full-stack MERN, no download)"
+        className="ml-1 px-3 py-2 rounded-xl border-[1.5px] border-black-ink bg-paper/95 text-xs font-bold hover:bg-black-ink hover:text-paper transition-colors disabled:opacity-50"
+      >
+        🏖 Demo
       </button>
     </div>
   );
