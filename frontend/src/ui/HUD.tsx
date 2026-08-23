@@ -449,8 +449,7 @@ export function HUD() {
     setAiText(null);
     pushLog("fe", `AI analyze ${b.name}…`, "info");
     try {
-      const projectId = useCity.getState().city.project?.id;
-      const res = await apiFetch(projectId ? `/projects/${projectId}/insights` : `/insights/building`, {
+      const res = await apiFetch(`/insights/building`, {
         method: "POST",
         body: JSON.stringify({
           building: { id: b.id, name: b.name, kind: b.kind, loc: b.loc, health: b.health, district: b.districtName, stack: b.stack },
@@ -733,8 +732,7 @@ function ImprovementGuide() {
         .slice(0, 8)
         .map((b) => ({ id: b.id, name: b.name, kind: b.kind, loc: b.loc, health: b.health }));
       const broken = L.buildings.filter((b) => b.health !== "ok").map((b) => ({ id: b.id, name: b.name, health: b.health }));
-      const projectId = useCity.getState().city.project?.id;
-      const res = await apiFetch(projectId ? `/projects/${projectId}/improvements` : `/insights/improvements`, {
+      const res = await apiFetch(`/insights/improvements`, {
         method: "POST",
         body: JSON.stringify({ stats: { buildings: L.buildings.length, districts: L.districts.length }, hotspots, broken }),
       });

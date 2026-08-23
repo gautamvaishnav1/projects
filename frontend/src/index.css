@@ -632,3 +632,8 @@ body {
   backdrop-filter: blur(6px);
   color: #e2e8f0;
 }
+
+/* ATLAS plate buildings — lift on hover like a map pin */
+.atlas-bldg { transition: transform .18s ease; transform-box: fill-box; transform-origin: center; cursor: crosshair; }
+.atlas-bldg:hover { transform: translateY(-2px); }
+.atlas-bldg:hover rect { stroke-width: 2.2; }

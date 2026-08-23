@@ -290,89 +290,186 @@ const TT_LINES: Array<[string, string]> = [
 ];
 
 export function AtlasPlate() {
+  // honor reduced-motion: freeze the route dots for those who ask
+  const [reduced] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+  );
+
+  /* ── geometry: four district slabs, buildings on a shared lot grid ──
+     slab i: y = 60 + i*120, height 104 → 60..164 / 180..284 / 300..404 / 420..524
+     buildings: x = 150 + i*155 (w 138) → 150..288 / 305..443 / 460..598 / 615..753
+     corridors: left x=60 · right x=762 (req) / x=770 (res express)
+     route horizontals ride BELOW the buildings: slabY + 93 (req) / +99 (res) */
+
+  /* the request's route — a clean serpentine through the corridors */
+  const REQ =
+    "M 60 47 L 60 153 L 762 153 L 762 273 L 60 273 L 60 393 L 762 393 L 762 513 L 401 513";
+  /* the response climbs straight back up the east margin — one express line */
+  const RES = "M 434 506 L 770 506 L 770 47 L 522 47";
+
+  const bands = [
+    { n: "01", name: "CLIENT", tech: "REACT", y: 60, boxes: [
+      ["BROWSER", "index.html · root"],
+      ["REACT APP", "router · state"],
+      ["COMPONENTS", "Navbar · Card · Cart"],
+      ["API CLIENT", "axios · SWR"],
+    ]},
+    { n: "02", name: "SERVER", tech: "EXPRESS", y: 180, boxes: [
+      ["EXPRESS", "app · server.js"],
+      ["MIDDLEWARE", "auth · cors · morgan"],
+      ["ROUTES", "/api/products · /cart"],
+      ["CONTROLLER", "req → res handlers"],
+    ]},
+    { n: "03", name: "RUNTIME", tech: "NODE", y: 300, boxes: [
+      ["NODE.JS", "v20 · libuv"],
+      ["EVENT LOOP", "non-blocking I/O"],
+      ["SERVICES", "pricing · inventory"],
+      ["VALIDATION", "zod schemas"],
+    ]},
+    { n: "04", name: "DATA", tech: "MONGODB", y: 420, boxes: [
+      ["MONGOOSE", "ODM · queries"],
+      ["MODELS", "Product · User · Order"],
+      ["MONGODB ATLAS", "replica set · indexes", true],
+      ["AGGREGATIONS", "pipelines · cache"],
+    ]},
+  ] as const;
+
   return (
     <figure>
-      <div className="border-[1.5px] border-black-ink p-1.5">
-        <div className="relative bg-paper-deep p-3 md:p-4">
-          <svg viewBox="0 0 320 208" role="img" aria-label="Full-stack MERN plate" className="block w-full">
-            {/* ── 01 CLIENT — REACT ───────────────────────────── */}
-            <rect x="10" y="6" width="300" height="36" fill="rgba(20,20,20,.04)" stroke="#141414" strokeWidth="1" />
-            <rect x="10" y="6" width="4" height="36" fill="#141414" />
-            <text x="22" y="19" fontSize="7" letterSpacing="1.2" fill="#141414" fontWeight="700">01 · CLIENT</text>
-            <text x="228" y="19" fontSize="6" letterSpacing="0.8" fill="#141414" opacity="0.55" textAnchor="end">REACT</text>
-            {["<App>", "<Router>", "<HUD>"].map((t, i) => (
-              <g key={t}>
-                <rect x={22 + i * 72} y={24} width={62} height={12} fill="#f2efe3" stroke="#141414" strokeWidth="0.8" />
-                <text x={53 + i * 72} y={32.5} fontSize="5.5" textAnchor="middle" fill="#141414" fontFamily="JetBrains Mono, monospace">{t}</text>
-              </g>
-            ))}
+      <div className="border-[1.5px] border-black-ink bg-paper-deep p-1.5 shadow-[6px_6px_0_rgba(20,20,20,.18)]">
+        <svg viewBox="0 0 800 600" role="img"
+          aria-label="City-plan map of the MERN stack: a request descends through Client, Server, Runtime and Data districts; the response climbs back out"
+          className="block h-auto w-full select-none">
+          <defs>
+            <marker id="atlas-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#e30613" />
+            </marker>
+          </defs>
 
-            {/* ── 02 API — EXPRESS ───────────────────────────── */}
-            <rect x="10" y="56" width="300" height="36" fill="rgba(20,20,20,.04)" stroke="#141414" strokeWidth="1" />
-            <rect x="10" y="56" width="4" height="36" fill="#141414" />
-            <text x="22" y="69" fontSize="7" letterSpacing="1.2" fill="#141414" fontWeight="700">02 · API</text>
-            <text x="228" y="69" fontSize="6" letterSpacing="0.8" fill="#141414" opacity="0.55" textAnchor="end">EXPRESS</text>
-            {["route", "guard", "controller"].map((t, i) => (
-              <g key={t}>
-                <rect x={22 + i * 74} y={74} width={62} height={12} fill="#f2efe3" stroke="#141414" strokeWidth="0.8" />
-                <text x={53 + i * 74} y={82.5} fontSize="5.5" textAnchor="middle" fill="#141414" fontFamily="JetBrains Mono, monospace">{t}</text>
-                {i < 2 && <path d={`M ${85 + i * 74} 80 h 9 m -3 -2 l 3 2 l -3 2`} fill="none" stroke="#141414" strokeWidth="0.8" />}
-              </g>
+          {/* ── surveyor's grid ── */}
+          <g stroke="#141414" strokeOpacity="0.07">
+            {Array.from({ length: 19 }, (_, i) => (
+              <line key={`v${i}`} x1={(i + 1) * 40} y1={0} x2={(i + 1) * 40} y2={600} />
             ))}
-
-            {/* ── 03 RUNTIME — NODE ──────────────────────────── */}
-            <rect x="10" y="106" width="300" height="36" fill="rgba(20,20,20,.04)" stroke="#141414" strokeWidth="1" />
-            <rect x="10" y="106" width="4" height="36" fill="#141414" />
-            <text x="22" y="119" fontSize="7" letterSpacing="1.2" fill="#141414" fontWeight="700">03 · RUNTIME</text>
-            <text x="228" y="119" fontSize="6" letterSpacing="0.8" fill="#141414" opacity="0.55" textAnchor="end">NODE</text>
-            <circle cx="42" cy="132" r="9" fill="none" stroke="#141414" strokeWidth="1" />
-            <path d="M 42 123 A 9 9 0 0 1 51 132" fill="none" stroke="#e30613" strokeWidth="1.6" />
-            <text x="58" y="135" fontSize="5.5" fill="#141414" opacity="0.75" fontFamily="JetBrains Mono, monospace">event loop ∞</text>
-            {["libuv pool", "workers"].map((t, i) => (
-              <g key={t}>
-                <rect x={124 + i * 62} y={126} width={56} height={12} fill="#f2efe3" stroke="#141414" strokeWidth="0.8" />
-                <text x={152 + i * 62} y={134.5} fontSize="5.5" textAnchor="middle" fill="#141414" fontFamily="JetBrains Mono, monospace">{t}</text>
-              </g>
+            {Array.from({ length: 14 }, (_, i) => (
+              <line key={`h${i}`} x1={0} y1={(i + 1) * 40} x2={800} y2={(i + 1) * 40} />
             ))}
+          </g>
 
-            {/* ── 04 DATA — MONGODB ──────────────────────────── */}
-            <rect x="10" y="156" width="300" height="34" fill="rgba(20,20,20,.08)" stroke="#141414" strokeWidth="1" />
-            <rect x="10" y="156" width="4" height="34" fill="#e30613" />
-            <text x="22" y="169" fontSize="7" letterSpacing="1.2" fill="#141414" fontWeight="700">04 · DATA</text>
-            <text x="228" y="169" fontSize="6" letterSpacing="0.8" fill="#141414" opacity="0.55" textAnchor="end">MONGODB</text>
-            {["{ users }", "{ carts }", "{ sessions }"].map((t, i) => (
-              <g key={t}>
-                <rect x={22 + i * 74} y={173} width={62} height={11} fill="#f2efe3" stroke="#141414" strokeWidth="0.8" />
-                <text x={53 + i * 74} y={181} fontSize="5.5" textAnchor="middle" fill="#141414" fontFamily="JetBrains Mono, monospace">{t}</text>
-              </g>
+          {/* ── plate furniture: coordinates + title ── */}
+          <g fontFamily="JetBrains Mono, monospace" fontSize="9" fill="#141414" opacity="0.5">
+            {["A", "B", "C", "D", "E", "F", "G", "H"].map((c, i) => (
+              <text key={c} x={100 + i * 88} y={596} textAnchor="middle">{c}</text>
             ))}
-
-            {/* channel rails — request descends in signal red, response climbs in ink */}
-            <line x1="262" y1="46" x2="262" y2="190" stroke="#e30613" strokeWidth="0.7" strokeDasharray="3 3" opacity="0.65" />
-            <line x1="280" y1="46" x2="280" y2="190" stroke="#141414" strokeWidth="0.7" strokeDasharray="3 3" opacity="0.45" />
-            <text x="262" y="53" fontSize="5" letterSpacing="0.6" fill="#e30613" fontWeight="700" textAnchor="middle">REQ ▾</text>
-            <text x="280" y="53" fontSize="5" letterSpacing="0.6" fill="#141414" opacity="0.6" textAnchor="middle">▴ RES</text>
-            <path id="mern-req" d="M262 46 V 190" fill="none" />
-            <path id="mern-res" d="M280 190 V 46" fill="none" />
-            <circle r="2.4" fill="#e30613">
-              <animateMotion dur="3.2s" repeatCount="indefinite"><mpath href="#mern-req" /></animateMotion>
-            </circle>
-            <circle r="2" fill="#141414">
-              <animateMotion dur="3.2s" begin="-1.6s" repeatCount="indefinite"><mpath href="#mern-res" /></animateMotion>
-            </circle>
-
-            {/* bottom ruler — where each layer listens */}
-            <line x1="0" y1="202" x2="320" y2="202" stroke="#141414" strokeWidth="0.8" />
-            {[[16, ":5173"], [140, ":5000"], [290, ":27017"]].map(([x, t]) => (
-              <g key={t}>
-                <line x1={x} y1="202" x2={x} y2="206" stroke="#141414" strokeWidth="0.8" />
-                <text x={x} y="200.5" fontSize="5" letterSpacing="0.8" fill="#141414" opacity="0.6">{t}</text>
-              </g>
+            {["1", "2", "3", "4"].map((c, i) => (
+              <text key={c} x={10} y={120 + i * 120}>{c}</text>
             ))}
-          </svg>
-        </div>
+          </g>
+          <text x="260" y="24" textAnchor="middle" fontFamily="Archivo, sans-serif" fontWeight="900" fontSize="17" fill="#141414" letterSpacing="1">
+            MERN STACK — CITY PLAN
+          </text>
+
+          {/* ── the four districts ── */}
+          {bands.map((b) => (
+            <g key={b.n}>
+              {/* district slab */}
+              <rect x="26" y={b.y} width="748" height="104" fill="#141414" fillOpacity="0.035" stroke="#141414" strokeOpacity="0.35" strokeWidth="1" />
+              {/* district label — inside the slab, above the building line */}
+              <text x="36" y={b.y + 16} fontFamily="Archivo, sans-serif" fontWeight="900" fontSize="11" fill="#141414" letterSpacing="1.5">
+                {b.n} · {b.name}
+                <tspan fill="#e30613"> — {b.tech}</tspan>
+              </text>
+              {/* buildings */}
+              {b.boxes.map(([name, sub, hot], i) => {
+                const x = 150 + i * 155;
+                return (
+                  <g key={name} className="atlas-bldg">
+                    <rect x={x} y={b.y + 24} width="138" height="60"
+                      fill={hot ? "#e30613" : "#f7f4e8"}
+                      stroke="#141414" strokeWidth={hot ? 2 : 1.4} />
+                    {/* roof tick — print-map building mark */}
+                    <line x1={x + 6} y1={b.y + 24} x2={x + 6} y2={b.y + 32} stroke={hot ? "#f7f4e8" : "#141414"} strokeWidth="2" />
+                    <text x={x + 12} y={b.y + 46} fontFamily="Archivo, sans-serif" fontWeight="700" fontSize="11.5"
+                      fill={hot ? "#f7f4e8" : "#141414"} letterSpacing="0.5">{name}</text>
+                    <text x={x + 12} y={b.y + 62} fontFamily="JetBrains Mono, monospace" fontSize="8.5"
+                      fill={hot ? "#f7f4e8" : "#141414"} opacity={hot ? 0.85 : 0.6}>{sub}</text>
+                    <title>{name} — {sub}</title>
+                  </g>
+                );
+              })}
+            </g>
+          ))}
+
+          {/* ── routes ride the corridors, never through a building ── */}
+          <path d={REQ} fill="none" stroke="#e30613" strokeWidth="2.4" strokeLinejoin="round" />
+          <path d={RES} fill="none" stroke="#e30613" strokeWidth="1.6" strokeDasharray="7 5" strokeLinejoin="round" opacity="0.75" markerEnd="url(#atlas-arrow)" />
+
+          {/* hop markers where the request changes layer */}
+          {([[60, 153, 70, 149, "start"], [762, 273, 752, 269, "end"], [60, 393, 70, 389, "start"], [762, 513, 752, 509, "end"]] as const).map(([x, y, tx, ty, anchor], i) => (
+            <g key={i}>
+              <circle cx={x} cy={y} r="4.5" fill="#f7f4e8" stroke="#e30613" strokeWidth="2" />
+              <text x={tx} y={ty} textAnchor={anchor}
+                fontFamily="JetBrains Mono, monospace" fontSize="8.5" fontWeight="700" fill="#e30613">
+                HOP {i + 1}
+              </text>
+            </g>
+          ))}
+
+          {/* endpoints */}
+          <g fontFamily="JetBrains Mono, monospace" fontSize="9.5" fontWeight="700">
+            <rect x="30" y="30" width="62" height="17" fill="#141414" />
+            <text x="61" y="42" textAnchor="middle" fill="#f7f4e8">REQ ↓</text>
+            <rect x="368" y="498" width="66" height="17" fill="#e30613" />
+            <text x="401" y="510" textAnchor="middle" fill="#f7f4e8">MONGO</text>
+            <rect x="404" y="30" width="118" height="17" fill="none" stroke="#e30613" strokeWidth="1.4" strokeDasharray="4 3" />
+            <text x="463" y="42" textAnchor="middle" fill="#e30613">RES 200 ↑ 3.2s</text>
+          </g>
+
+          {/* ── the travelling packets ── */}
+          {!reduced && (
+            <>
+              <circle r="5.5" fill="#e30613" stroke="#f7f4e8" strokeWidth="1.5">
+                <animateMotion dur="7s" repeatCount="indefinite" path={REQ} />
+              </circle>
+              <circle r="4.5" fill="#f7f4e8" stroke="#e30613" strokeWidth="2">
+                <animateMotion dur="7s" begin="3.5s" repeatCount="indefinite" path={RES} />
+              </circle>
+            </>
+          )}
+
+          {/* ── compass rose, bottom right ── */}
+          <g transform="translate(762,560)">
+            <circle r="16" fill="none" stroke="#141414" strokeWidth="1.2" />
+            <path d="M 0 -13 L 4 4 L 0 1 L -4 4 Z" fill="#e30613" />
+            <text y="-20" textAnchor="middle" fontFamily="Archivo, sans-serif" fontWeight="900" fontSize="11" fill="#141414">N</text>
+          </g>
+
+          {/* ── legend + scale bar ── */}
+          <g transform="translate(28,556)" fontFamily="JetBrains Mono, monospace" fontSize="9" fill="#141414">
+            <line x1="0" y1="0" x2="26" y2="0" stroke="#e30613" strokeWidth="2.4" />
+            <text x="32" y="3">REQUEST</text>
+            <line x1="104" y1="0" x2="130" y2="0" stroke="#e30613" strokeWidth="1.6" strokeDasharray="6 4" />
+            <text x="136" y="3">RESPONSE</text>
+            <rect x="216" y="-6" width="12" height="12" fill="#f7f4e8" stroke="#141414" strokeWidth="1.3" />
+            <text x="234" y="3">MODULE</text>
+            <rect x="300" y="-6" width="12" height="12" fill="#e30613" />
+            <text x="318" y="3">DATASTORE</text>
+            {/* scale bar */}
+            <g transform="translate(420,0)">
+              <line x1="0" y1="0" x2="120" y2="0" stroke="#141414" strokeWidth="1.4" />
+              {[0, 30, 60, 90, 120].map((x) => (
+                <line key={x} x1={x} y1="-4" x2={x} y2="4" stroke="#141414" strokeWidth="1.4" />
+              ))}
+              <text x="0" y="14" fontSize="8" opacity="0.6">0</text>
+              <text x="104" y="14" fontSize="8" opacity="0.6">1 HOP</text>
+            </g>
+          </g>
+        </svg>
       </div>
-      <figcaption className="caption-caps mt-3 text-black-ink/45">FIG. 05 — FULL-STACK MERN PLATE · ONE REQUEST, END TO END</figcaption>
+      <figcaption className="caption-caps mt-3 flex items-baseline justify-between gap-4 text-black-ink/45">
+        <span>FIG. 05 — FULL-STACK MERN PLATE · ONE REQUEST, END TO END</span>
+        <span className="hidden sm:block">8 HOPS · 4 DISTRICTS · LIVE ROUTE</span>
+      </figcaption>
     </figure>
   );
 }

@@ -1,6 +1,5 @@
 import { Router } from "express";
 import { z } from "zod";
-import { requireAuth } from "../../shared/middleware/auth.middleware";
 import { validate } from "../../shared/middleware/validate.middleware";
 import { aiLimiter } from "../../shared/middleware/rate-limiter.middleware";
 import { buildingInsight, improvementGuide } from "./insights.controller";
@@ -32,7 +31,8 @@ const guideSchema = z.object({
   broken: z.array(z.object({ id: z.string(), name: z.string(), health: z.string().optional() })).max(40).optional(),
 });
 
-router.use(requireAuth);
+// No requireAuth: insights analyze request-body data (building stats), not
+// user-owned resources — the sample city works without sign-in.
 router.post("/insights/building", aiLimiter, validate({ body: buildingSchema }), buildingInsight);
 router.post("/insights/improvements", aiLimiter, validate({ body: guideSchema }), improvementGuide);
 
