@@ -66,13 +66,15 @@ export async function beginSignIn(email: string, password: string): Promise<Begi
   }
 }
 
-/** Register always starts the OTP flow — the token arrives after /verify-otp. */
+/** Register always starts the OTP flow — the token arrives after /verify-otp.
+ *  In dev mode the backend returns the OTP as top-level `devCode` so the UI can
+ *  auto-fill it (no email transport locally). */
 export async function beginSignUp(name: string, email: string, password: string): Promise<BeginResult> {
-  await request("/register", {
+  const r = await request<{ devCode?: string }>("/register", {
     method: "POST",
     body: JSON.stringify({ name, email, password }),
   });
-  return { status: "otp-required", email };
+  return { status: "otp-required", email, devCode: r.devCode as string | undefined };
 }
 
 export async function verifyOtp(email: string, code: string) {
