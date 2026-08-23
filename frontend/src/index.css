@@ -715,49 +715,44 @@ body {
   .atlas-drift i { animation: none; }
 }
 
-/* comet — a tail-star streaking the sheet every ~17s, print-faded */
-.ad-comet {
-  top: 10%;
-  left: -28vw;
-  width: 330px;
-  height: 1.6px;
-  border-radius: 2px;
-  background: linear-gradient(90deg, transparent, rgba(227, 6, 19, 0.06) 50%, rgba(227, 6, 19, 0.42));
-  animation: atlas-comet 17s cubic-bezier(0.3, 0, 0.7, 1) infinite;
-}
-.ad-comet::after {
-  content: "";
-  position: absolute;
-  right: -3px;
-  top: -2.7px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #e30613;
+/* ═══ OLD-PAPER TEAR — 1900s deckle edges, alive ═══════════════════
+   Two torn strips crawl almost imperceptibly (the sheet slowly tearing),
+   and once every ~23s a tear FLASHES open somewhere and heals. Tones are
+   pulled from the same inks as the printed plates — nothing neon. */
+.ad-tear {
+  left: 0;
+  right: 0;
+  height: 26px;
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27600%27%20height%3D%2726%27%20viewBox%3D%270%200%20600%2026%27%3E%3Cpath%20d%3D%27M%200%205%20L%2015%207%20L%2035%208%20L%2048%2017%20L%2059%2012%20L%2077%2018%20L%2094%2016%20L%20113%206%20L%20134%2010%20L%20153%209%20L%20169%2019%20L%20186%205%20L%20204%2016%20L%20224%2010%20L%20240%2012%20L%20255%2018%20L%20278%2018%20L%20298%2012%20L%20313%206%20L%20332%2018%20L%20356%208%20L%20372%205%20L%20391%2014%20L%20410%2016%20L%20422%2016%20L%20438%2016%20L%20449%2018%20L%20459%2019%20L%20474%2013%20L%20487%2012%20L%20511%2018%20L%20532%209%20L%20542%207%20L%20553%2012%20L%20571%2016%20L%20593%2015%20L%20600%2026%20L%200%2026%20Z%27%20fill%3D%27%23ebe4cd%27/%3E%3Cpath%20d%3D%27M%200%205%20L%2015%207%20L%2035%208%20L%2048%2017%20L%2059%2012%20L%2077%2018%20L%2094%2016%20L%20113%206%20L%20134%2010%20L%20153%209%20L%20169%2019%20L%20186%205%20L%20204%2016%20L%20224%2010%20L%20240%2012%20L%20255%2018%20L%20278%2018%20L%20298%2012%20L%20313%206%20L%20332%2018%20L%20356%208%20L%20372%205%20L%20391%2014%20L%20410%2016%20L%20422%2016%20L%20438%2016%20L%20449%2018%20L%20459%2019%20L%20474%2013%20L%20487%2012%20L%20511%2018%20L%20532%209%20L%20542%207%20L%20553%2012%20L%20571%2016%20L%20593%2015%27%20fill%3D%27none%27%20stroke%3D%27rgba%2820%2C20%2C20%2C0.16%29%27%20stroke-width%3D%271.6%27/%3E%3Cpath%20d%3D%27M%200%202%20L%2015%205%20L%2035%205%20L%2048%2013%20L%2059%2010%20L%2077%2014%20L%2094%2012%20L%20113%202%20L%20134%208%20L%20153%207%20L%20169%2015%20L%20186%203%20L%20204%2012%20L%20224%208%20L%20240%209%20L%20255%2016%20L%20278%2014%20L%20298%209%20L%20313%203%20L%20332%2016%20L%20356%204%20L%20372%203%20L%20391%2010%20L%20410%2012%20L%20422%2014%20L%20438%2013%20L%20449%2014%20L%20459%2016%20L%20474%209%20L%20487%2010%20L%20511%2014%20L%20532%206%20L%20542%205%20L%20553%209%20L%20571%2014%20L%20593%2013%27%20fill%3D%27none%27%20stroke%3D%27rgba%28255%2C252%2C240%2C0.85%29%27%20stroke-width%3D%272.4%27/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
   opacity: 0.55;
-  box-shadow: 0 0 12px 2px rgba(227, 6, 19, 0.28);
 }
-@keyframes atlas-comet {
-  0%   { transform: translate3d(0, 0, 0) rotate(-15deg); opacity: 0; }
-  5%   { opacity: 0.95; }
-  26%  { opacity: 0.8; }
-  36%  { transform: translate3d(158vw, 40vh, 0) rotate(-15deg); opacity: 0; }
-  100% { transform: translate3d(158vw, 40vh, 0) rotate(-15deg); opacity: 0; }
+.ad-tear--a { top: 31%; animation: atlas-tear-x 110s linear infinite; }
+.ad-tear--b { top: 67%; transform: scaleX(-1); opacity: 0.4;
+  animation: atlas-tear-x-rev 150s linear infinite; }
+
+.ad-tearflash {
+  left: 0;
+  right: 0;
+  top: 47%;
+  height: 34px;
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27600%27%20height%3D%2726%27%20viewBox%3D%270%200%20600%2026%27%3E%3Cpath%20d%3D%27M%200%205%20L%2015%207%20L%2035%208%20L%2048%2017%20L%2059%2012%20L%2077%2018%20L%2094%2016%20L%20113%206%20L%20134%2010%20L%20153%209%20L%20169%2019%20L%20186%205%20L%20204%2016%20L%20224%2010%20L%20240%2012%20L%20255%2018%20L%20278%2018%20L%20298%2012%20L%20313%206%20L%20332%2018%20L%20356%208%20L%20372%205%20L%20391%2014%20L%20410%2016%20L%20422%2016%20L%20438%2016%20L%20449%2018%20L%20459%2019%20L%20474%2013%20L%20487%2012%20L%20511%2018%20L%20532%209%20L%20542%207%20L%20553%2012%20L%20571%2016%20L%20593%2015%20L%20600%2026%20L%200%2026%20Z%27%20fill%3D%27%23ebe4cd%27/%3E%3Cpath%20d%3D%27M%200%205%20L%2015%207%20L%2035%208%20L%2048%2017%20L%2059%2012%20L%2077%2018%20L%2094%2016%20L%20113%206%20L%20134%2010%20L%20153%209%20L%20169%2019%20L%20186%205%20L%20204%2016%20L%20224%2010%20L%20240%2012%20L%20255%2018%20L%20278%2018%20L%20298%2012%20L%20313%206%20L%20332%2018%20L%20356%208%20L%20372%205%20L%20391%2014%20L%20410%2016%20L%20422%2016%20L%20438%2016%20L%20449%2018%20L%20459%2019%20L%20474%2013%20L%20487%2012%20L%20511%2018%20L%20532%209%20L%20542%207%20L%20553%2012%20L%20571%2016%20L%20593%2015%27%20fill%3D%27none%27%20stroke%3D%27rgba%2820%2C20%2C20%2C0.16%29%27%20stroke-width%3D%271.6%27/%3E%3Cpath%20d%3D%27M%200%202%20L%2015%205%20L%2035%205%20L%2048%2013%20L%2059%2010%20L%2077%2014%20L%2094%2012%20L%20113%202%20L%20134%208%20L%20153%207%20L%20169%2015%20L%20186%203%20L%20204%2012%20L%20224%208%20L%20240%209%20L%20255%2016%20L%20278%2014%20L%20298%209%20L%20313%203%20L%20332%2016%20L%20356%204%20L%20372%203%20L%20391%2010%20L%20410%2012%20L%20422%2014%20L%20438%2013%20L%20449%2014%20L%20459%2016%20L%20474%209%20L%20487%2010%20L%20511%2014%20L%20532%206%20L%20542%205%20L%20553%209%20L%20571%2014%20L%20593%2013%27%20fill%3D%27none%27%20stroke%3D%27rgba%28255%2C252%2C240%2C0.85%29%27%20stroke-width%3D%272.4%27/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  background-size: auto 34px;
+  transform: rotate(-0.4deg);
+  opacity: 0;
+  animation: atlas-tear-flash 23s ease-out infinite;
 }
 
-/* second pass — shallower angle, fainter, offset so they rarely meet */
-.ad-comet--b {
-  top: 58%;
-  left: -34vw;
-  width: 240px;
-  height: 1.2px;
-  background: linear-gradient(90deg, transparent, rgba(20, 20, 20, 0.05) 50%, rgba(20, 20, 20, 0.3));
-  animation-duration: 23s;
-  animation-delay: 9s;
+@keyframes atlas-tear-x      { to { transform: translateX(-600px); } }
+@keyframes atlas-tear-x-rev  { to { transform: scaleX(-1) translateX(-600px); } }
+@keyframes atlas-tear-flash {
+  0%   { opacity: 0; }
+  1.5% { opacity: 0.85; }
+  5%   { opacity: 0; transform: rotate(-0.4deg) translateX(46px); }
+  100% { opacity: 0; }
 }
-.ad-comet--b::after {
-  background: #141414;
-  opacity: 0.4;
-  box-shadow: 0 0 10px 2px rgba(20, 20, 20, 0.18);
+
+@media (prefers-reduced-motion: reduce) {
+  .ad-tear, .ad-tearflash { animation: none; }
 }
-@keyframes unused-b { /* --b reuses atlas-comet path */ }

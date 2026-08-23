@@ -567,8 +567,9 @@ export default function Landing({ onLaunch, onLaunchIntent }: { onLaunch: () => 
         <i className="ad-grid ad-grid--b" />
         <i className="ad-contour" />
         <i className="ad-sweep" />
-        <i className="ad-comet" />
-        <i className="ad-comet ad-comet--b" />
+        <i className="ad-tear ad-tear--a" />
+        <i className="ad-tear ad-tear--b" />
+        <i className="ad-tearflash" />
       </div>
       <div className="trim-edge trim-n" aria-hidden />
       <div className="trim-edge trim-s" aria-hidden />
