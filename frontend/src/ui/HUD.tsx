@@ -6,6 +6,7 @@ import { apiFetch, API_BASE, useAuth } from "../lib/auth";
 import { architectureToCity, useCityLayout } from "../lib/city";
 import { KIND_COLOR } from "../lib/layout";
 import { useCity } from "../store/useCity";
+import { DraggablePanel } from "./DraggablePanel";
 
 const POLL_INTERVAL_MS = 2000;
 const MAX_POLLS = 90; // ~3 min ceiling
@@ -308,7 +309,7 @@ function LogPanel() {
     l === "error" ? "text-red-600" : l === "warn" ? "text-amber-600" : l === "ok" ? "text-emerald-700" : "text-black-ink/75";
   const errCount = LOG_BUFFER.filter((l) => l.level === "error").length;
   return (
-    <div className="pointer-events-auto absolute bottom-16 left-3 max-lg:hidden">
+    <DraggablePanel id="log" className="pointer-events-auto absolute bottom-16 left-3 max-lg:hidden" resizable={false}>
       {open ? (
         <div className="w-[420px] max-w-[90vw] rounded-xl border-[1.5px] border-black-ink bg-[#101418]/97 p-0 text-[11px] leading-snug shadow-[4px_4px_0_rgba(0,0,0,.4)]">
           <div className="flex items-center justify-between border-b border-white/15 px-3 py-2">
@@ -336,7 +337,7 @@ function LogPanel() {
           {errCount > 0 && <span className="absolute -right-1.5 -top-1.5 grid h-4 w-4 place-items-center rounded-full bg-signal text-[9px] font-bold text-paper">{errCount}</span>}
         </button>
       )}
-    </div>
+    </DraggablePanel>
   );
 }
 
@@ -533,11 +534,19 @@ export function HUD() {
             <span className="hidden lg:inline">Follow</span>
             <span className="lg:hidden">Cam</span>
           </button>
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent("cc-panels-reset"))}
+            title="Dock all panels back to their default positions"
+            className="rounded-xl border-[1.5px] border-black-ink/60 bg-paper-deep px-2 py-2 text-xs lg:px-3"
+          >
+            ⟲<span className="hidden lg:inline"> Reset layout</span>
+          </button>
         </div>
       </div>
 
       {/* telemetry */}
-      <div className="absolute left-3 top-16 grid gap-2 pointer-events-auto max-sm:grid-cols-4 max-sm:gap-1 sm:max-lg:top-28">
+      <DraggablePanel id="telemetry" className="absolute left-3 top-16 pointer-events-auto sm:max-lg:top-28" resizable={false}>
+        <div className="grid gap-2 max-sm:grid-cols-4 max-sm:gap-1">
         {(
           [
             ["FILES", layout.buildings.length],
@@ -551,7 +560,8 @@ export function HUD() {
             <div className="text-lg font-bold text-signal">{v}</div>
           </div>
         ))}
-      </div>
+        </div>
+      </DraggablePanel>
 
       {/* hero controls */}
       <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2 pointer-events-auto max-md:bottom-24">
@@ -589,7 +599,9 @@ export function HUD() {
       </div>
 
       {/* notifications bottom-right */}
-      <div className="pointer-events-auto absolute bottom-4 right-3 z-30 grid w-72 gap-2 max-md:bottom-40 max-md:left-3 max-md:right-3 max-md:w-auto">
+      {s.notifications.length > 0 && (
+      <DraggablePanel id="notifs" className="pointer-events-auto absolute bottom-4 right-3 z-30 max-md:bottom-40 max-md:left-3 max-md:right-3" resizable={false}>
+        <div className="grid w-72 gap-2 max-md:w-auto">
         {s.notifications.map((n) => (
           <button
             key={n.id}
@@ -601,11 +613,14 @@ export function HUD() {
             {n.text}
           </button>
         ))}
-      </div>
+        </div>
+      </DraggablePanel>
+      )}
 
       {/* right rail — alerts, inspector and atmosphere stack in one flow column
           so they can never overlap each other regardless of alert count */}
-      <div className="pointer-events-none absolute right-3 top-16 z-30 flex max-h-[calc(100vh-160px)] w-80 max-w-[calc(100vw-24px)] flex-col items-stretch gap-2 overflow-y-auto max-md:left-3 max-md:right-3 max-md:w-auto">
+      <DraggablePanel id="rail" className="pointer-events-none absolute right-3 top-16 z-30 max-md:left-3 max-md:right-3" resizable={false}>
+        <div className="flex max-h-[calc(100vh-160px)] w-80 max-w-[calc(100vw-24px)] flex-col items-stretch gap-2 overflow-y-auto max-md:w-auto">
         <AlertStack />
         {/* inspector */}
         {sel && (
@@ -699,7 +714,8 @@ export function HUD() {
           </div>
         )}
         <WeatherPanel />
-      </div>
+        </div>
+      </DraggablePanel>
       <LegendPanel />
       <Minimap />
       <LogPanel />
@@ -757,8 +773,9 @@ function ImprovementGuide() {
     );
 
   return (
-    <div className="pointer-events-auto absolute inset-x-4 top-16 bottom-16 z-40 mx-auto flex max-w-xl flex-col overflow-hidden rounded-xl border-[1.5px] border-black-ink bg-paper/98 shadow-[6px_6px_0_rgba(0,0,0,.4)] max-md:inset-x-2">
-      <div className="flex items-center justify-between border-b-[1.5px] border-black-ink px-4 py-3">
+    <DraggablePanel id="guide" className="pointer-events-auto absolute inset-x-4 top-16 bottom-16 z-40 mx-auto max-w-xl" minW={320} minH={240}>
+      <div className="flex h-full flex-col overflow-hidden rounded-xl border-[1.5px] border-black-ink bg-paper/98 shadow-[6px_6px_0_rgba(0,0,0,.4)]">
+      <div className="flex items-center justify-between border-b-[1.5px] border-black-ink px-4 py-3" data-drag>
         <span className="caption-caps font-bold">📐 AI IMPROVEMENT GUIDE — {L.buildings.length} BUILDINGS SCANNED</span>
         <button onClick={() => setOpen(false)} className="text-black-ink/45 hover:text-signal">✕</button>
       </div>
@@ -786,7 +803,8 @@ function ImprovementGuide() {
           {busy ? "SCANNING…" : text ? "REGENERATE" : "SCAN CITY WITH AI"}
         </button>
       </div>
-    </div>
+      </div>
+    </DraggablePanel>
   );
 }
 
@@ -926,7 +944,7 @@ function Minimap() {
   }, [focus, LAYOUT, healthEvents]);
 
   return (
-    <div className="pointer-events-auto absolute bottom-[118px] left-3 w-[179px] select-none max-lg:hidden">
+    <DraggablePanel id="minimap" className="pointer-events-auto absolute bottom-[118px] left-3 w-[179px] select-none max-lg:hidden" resizable={false}>
       {/* plate frame — printed pass around the map */}
       <div className="border-[1.5px] border-black-ink bg-paper-deep p-1.5 shadow-[4px_4px_0_rgba(0,0,0,.35)]">
         <div className="mb-1.5 flex items-center justify-between border-b-[1.5px] border-black-ink px-1 pb-1">
@@ -944,7 +962,7 @@ function Minimap() {
         />
       </div>
       <p className="caption-caps mt-1.5 text-[9px] leading-none text-black-ink/60">Fig. 05 — click to navigate · pins = incidents</p>
-    </div>
+    </DraggablePanel>
   );
 }
 
@@ -957,7 +975,7 @@ function LegendPanel() {
     return m;
   }, [layout]);
   return (
-    <div className="absolute bottom-4 left-3 pointer-events-auto max-md:bottom-40">
+    <DraggablePanel id="legend" className="absolute bottom-4 left-3 pointer-events-auto max-md:bottom-40" resizable={false}>
       {open ? (
         <div className="w-56 rounded-none border-[1.5px] border-black-ink bg-paper/95 p-3 text-xs">
           <button onClick={() => setOpen(false)} className="float-right text-black-ink/45 hover:text-black-ink">
@@ -987,6 +1005,6 @@ function LegendPanel() {
           ☰ Legend &amp; keys
         </button>
       )}
-    </div>
+    </DraggablePanel>
   );
 }
