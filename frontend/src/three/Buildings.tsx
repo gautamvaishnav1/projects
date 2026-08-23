@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Text, Edges, Billboard, Html, useGLTF } from "@react-three/drei";
+import { Edges, Html, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import type { LaidBuilding, LaidDistrict } from "../lib/layout";
 import type { Kind } from "../types";
@@ -81,11 +81,13 @@ export function District({ d }: { d: LaidDistrict }) {
       <mesh position={[0, 0.25, 0]} receiveShadow material={PLINTH}>
         <boxGeometry args={[slab[0], 0.5, slab[1]]} />
       </mesh>
-      <Billboard position={[0, d.stack === "database" ? 3 : 12, -slab[1] / 2 + 1]}>
-        <Text fontSize={2} color="#dbeafe" anchorX="center" outlineWidth={0.1} outlineColor="#000" letterSpacing={0.15}>
+      {/* DOM label — drei <Text> spawns a WebGL context per SDF atlas and
+          26 of them blew Chrome's context budget, killing the scene (black screen) */}
+      <Html center position={[0, d.stack === "database" ? 3 : 12, -slab[1] / 2 + 1]} distanceFactor={90} style={{ pointerEvents: "none" }} zIndexRange={[10, 0]}>
+        <div className="whitespace-nowrap rounded-md border border-blue-200/25 bg-black/60 px-2 py-0.5 text-[11px] font-bold tracking-[0.15em] text-blue-100">
           {d.name.toUpperCase()}
-        </Text>
-      </Billboard>
+        </div>
+      </Html>
     </group>
   );
 }
@@ -150,9 +152,9 @@ export function Building({ b }: { b: LaidBuilding }) {
         </Html>
       )}
       {selected && (
-        <Billboard position={[0, h + 3.2, 0]}>
-          <Text fontSize={1.4} color="#fff" anchorX="center" outlineWidth={0.08} outlineColor="#000">{b.name}</Text>
-        </Billboard>
+        <Html center position={[0, h + 3.2, 0]} distanceFactor={55} style={{ pointerEvents: "none" }} zIndexRange={[10, 0]}>
+          <div className="whitespace-nowrap rounded-md border border-cyan-400/40 bg-black/70 px-2 py-0.5 text-xs font-bold text-white">{b.name}</div>
+        </Html>
       )}
     </group>
   );
