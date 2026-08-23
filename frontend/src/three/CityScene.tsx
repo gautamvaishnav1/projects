@@ -15,6 +15,7 @@ import { Precipitation } from "./Precipitation";
 import { Lightning } from "./Lightning";
 import { Wet } from "./Wet";
 import { CameraRig } from "./CameraRig";
+import { ShowcaseWorld, ShowcaseOrbit } from "./Showcase";
 import { FloatingNotifs } from "../ui/HUD";
 import { Connections } from "./Connections";
 import { HDRI_DAY, HDRI_NIGHT, preloadAll } from "./assets";
@@ -90,6 +91,11 @@ export function CityScene() {
       <Atmosphere />
       <NightMaterials />
       <CameraRig />
+      {/* ambient rotating props (turbines/fans/dishes/billboards/blimp) */}
+      <SceneErrorBoundary>
+        <ShowcaseWorld L={L} />
+      </SceneErrorBoundary>
+      <ShowcaseOrbit />
       {/* NOTE: EffectComposer/Bloom removed — its init race with the suspended
           HDR environment threw "null (reading 'alpha')" every frame and killed
           the render loop right after first paint (the flash-then-vanish bug).

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Html } from "@react-three/drei";
-import { Search, Play, Bug, Radio, Keyboard, GitBranch, LogOut, CloudRain, CloudLightning, CloudDrizzle, CloudFog, Snowflake, Sun, ScrollText } from "lucide-react";
+import { Search, Play, Bug, Radio, Keyboard, GitBranch, LogOut, CloudRain, CloudLightning, CloudDrizzle, CloudFog, Snowflake, Sun, ScrollText, Video } from "lucide-react";
 import { setAudioEnabled } from "../three/audio";
 import { apiFetch, API_BASE, useAuth } from "../lib/auth";
 import { architectureToCity, useCityLayout } from "../lib/city";
@@ -412,6 +412,12 @@ export function HUD() {
         case "K":
           st().patch({ links: !st().links });
           break;
+        case "o":
+        case "O": {
+          const next = !st().showcase;
+          st().patch({ showcase: next, following: next ? false : st().following });
+          break;
+        }
       }
     };
     window.addEventListener("keydown", onKey);
@@ -579,6 +585,18 @@ export function HUD() {
         >
           <Play size={14} className="mr-1 inline" />
           RUN LOGIN
+        </button>
+        <button
+          onClick={() => {
+            const next = !s.showcase;
+            s.patch({ showcase: next, following: next ? false : s.following });
+            s.notify(next ? "🎬 Showcase orbit — press O or drag to exit" : "Showcase off");
+          }}
+          title="Cinematic showcase orbit (O)"
+          className={`misreg rounded-xl border-[1.5px] px-3 py-2 text-xs font-bold md:py-3 ${s.showcase ? "border-black-ink bg-black-ink text-paper" : "border-black-ink bg-paper-deep text-black-ink/80"}`}
+        >
+          <Video size={12} className="mr-1 inline" />
+          <span className="hidden sm:inline"> SHOWCASE</span>
         </button>
         <button
           onClick={() => {

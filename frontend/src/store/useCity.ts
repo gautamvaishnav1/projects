@@ -23,6 +23,8 @@ interface S {
   traffic: boolean;
   underground: boolean;
   following: boolean;
+  /** cinematic showcase orbit — slow auto-orbit showing off the whole world */
+  showcase: boolean;
   failing: boolean;
   links: boolean;
   /** REAL round-trip latency of the last API call, in ms */
@@ -98,6 +100,7 @@ export const useCity = create<S>()((set) => ({
   traffic: true,
   underground: false,
   following: false,
+  showcase: false,
   failing: false,
   links: true,
   apiLatencyMs: null,
