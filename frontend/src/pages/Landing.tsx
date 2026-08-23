@@ -561,6 +561,13 @@ export default function Landing({ onLaunch, onLaunchIntent }: { onLaunch: () => 
       {/* paper artifacts */}
       <div className="paper-grain" aria-hidden />
       <div className="paper-fold" aria-hidden />
+      {/* living blueprint backdrop — grids drift, contours breathe */}
+      <div className="atlas-drift" aria-hidden>
+        <i className="ad-grid" />
+        <i className="ad-grid ad-grid--b" />
+        <i className="ad-contour" />
+        <i className="ad-sweep" />
+      </div>
       <div className="trim-edge trim-n" aria-hidden />
       <div className="trim-edge trim-s" aria-hidden />
       <div className="trim-edge trim-w" aria-hidden />

@@ -637,3 +637,80 @@ body {
 .atlas-bldg { transition: transform .18s ease; transform-box: fill-box; transform-origin: center; cursor: crosshair; }
 .atlas-bldg:hover { transform: translateY(-2px); }
 .atlas-bldg:hover rect { stroke-width: 2.2; }
+
+/* ═══ ATLAS DRIFT — living blueprint backdrop (landing) ════════════
+   Two survey grids pan at different speeds (parallax depth), topo
+   contours breathe, a plotter line sweeps the sheet. Pure transform
+   animations → GPU-only, zero layout cost, seamless loops. */
+.swiss-root { isolation: isolate; }
+
+.atlas-drift {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: -1; /* above the paper, below every printed element */
+  overflow: hidden;
+}
+.atlas-drift i { display: block; position: absolute; will-change: transform; }
+
+/* grid A — fine survey mesh, pans one cell per loop (seamless) */
+.ad-grid {
+  inset: -25%;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(20, 20, 20, 0.055) 0 1px, transparent 1px 80px),
+    repeating-linear-gradient(90deg, rgba(20, 20, 20, 0.055) 0 1px, transparent 1px 80px);
+  animation: atlas-pan-a 46s linear infinite;
+}
+/* grid B — coarse cadastral mesh, counter-drifts slower */
+.ad-grid--b {
+  inset: -25%;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(20, 20, 20, 0.04) 0 1px, transparent 1px 160px),
+    repeating-linear-gradient(90deg, rgba(20, 20, 20, 0.04) 0 1px, transparent 1px 160px);
+  animation: atlas-pan-b 96s linear infinite;
+}
+
+/* contour set — topographic rings around two summits, breathing */
+.ad-contour {
+  left: -15%;
+  top: -10%;
+  width: 130%;
+  height: 120%;
+  background:
+    radial-gradient(circle at 16% 28%, transparent 108px, rgba(20, 20, 20, 0.06) 109px 110px, transparent 112px),
+    radial-gradient(circle at 16% 28%, transparent 168px, rgba(20, 20, 20, 0.05) 169px 170px, transparent 172px),
+    radial-gradient(circle at 16% 28%, transparent 236px, rgba(20, 20, 20, 0.045) 237px 238px, transparent 240px),
+    radial-gradient(circle at 84% 74%, transparent 128px, rgba(20, 20, 20, 0.055) 129px 130px, transparent 132px),
+    radial-gradient(circle at 84% 74%, transparent 196px, rgba(20, 20, 20, 0.045) 197px 198px, transparent 200px),
+    radial-gradient(circle at 84% 74%, transparent 272px, rgba(227, 6, 19, 0.05) 273px 274px, transparent 276px);
+  animation: atlas-contour 64s ease-in-out infinite alternate;
+}
+
+/* plotter pass — a red hairline sweeps the sheet every ~34s */
+.ad-sweep {
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 34vh;
+  background: linear-gradient(to bottom, transparent, rgba(227, 6, 19, 0.05) 45%, rgba(20, 20, 20, 0.04) 55%, transparent);
+  animation: atlas-sweep 34s linear infinite;
+}
+
+@keyframes atlas-pan-a {
+  to { transform: translate3d(-80px, -80px, 0); }
+}
+@keyframes atlas-pan-b {
+  to { transform: translate3d(160px, 160px, 0); }
+}
+@keyframes atlas-contour {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(-36px, 24px, 0) scale(1.05); }
+}
+@keyframes atlas-sweep {
+  from { transform: translate3d(0, -40vh, 0); }
+  to   { transform: translate3d(0, 150vh, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atlas-drift i { animation: none; }
+}
