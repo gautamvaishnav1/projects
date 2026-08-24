@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Html, useGLTF } from "@react-three/drei";
+import { Html, Line, OrbitControls, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 
 /* ── THE WORLD MAP — a printed MERN maquette ────────────────────────
@@ -119,6 +119,8 @@ function Traveler({ curve, paused, reduced }: { curve: THREE.CatmullRomCurve3; p
     () => [0.12, 0.38, 0.62, 0.88].map((u) => curve.getPointAt(u)),
     [curve],
   );
+  const reqCurve = useMemo(() => new THREE.CatmullRomCurve3(REQ_PTS.map(([x, y, z]) => new THREE.Vector3(x, y, z))), []);
+  const resCurve = useMemo(() => new THREE.CatmullRomCurve3(RES_PTS.map(([x, y, z]) => new THREE.Vector3(x, y, z))), []);
   if (reduced) {
     return (
       <group>
@@ -128,11 +130,14 @@ function Traveler({ curve, paused, reduced }: { curve: THREE.CatmullRomCurve3; p
             <meshBasicMaterial color={SIGNAL} />
           </mesh>
         ))}
+        <RouteLines reqCurve={reqCurve} resCurve={resCurve} />
       </group>
     );
   }
   return (
     <group>
+      {/* printed route — dashed ink legs under the traveling dots */}
+      <RouteLines reqCurve={reqCurve} resCurve={resCurve} />
       <mesh ref={main}>
         <sphereGeometry args={[0.22, 14, 14]} />
         <meshBasicMaterial color={SIGNAL} />
@@ -145,7 +150,38 @@ function Traveler({ curve, paused, reduced }: { curve: THREE.CatmullRomCurve3; p
           </mesh>
         ))}
       </group>
+      <ResponseDot curve={curve} />
     </group>
+  );
+}
+
+/** signal-red request leg · dashed ink response leg */
+function RouteLines({ reqCurve, resCurve }: { reqCurve: THREE.CatmullRomCurve3; resCurve: THREE.CatmullRomCurve3 }) {
+  return (
+    <group>
+      <Line points={reqCurve.getPoints(60)} color={SIGNAL} lineWidth={1.5} dashed dashSize={0.35} gapSize={0.18} transparent opacity={0.85} />
+      <Line points={resCurve.getPoints(40)} color={INK} lineWidth={1} dashed dashSize={0.22} gapSize={0.26} transparent opacity={0.4} />
+    </group>
+  );
+}
+
+/** response courier — small gold bead trailing the red request on its climb home */
+function ResponseDot({ curve }: { curve: THREE.CatmullRomCurve3 }) {
+  const ref = useRef<THREE.Mesh>(null!);
+  const t = useRef(0);
+  useFrame((_, dt) => {
+    t.current = (t.current + dt * 0.09) % 1;
+    // ride slightly behind the request; visible mostly on the return leg
+    const u = (t.current - 0.06 + 1) % 1;
+    ref.current.position.copy(curve.getPointAt(u));
+    const mat = ref.current.material as THREE.MeshBasicMaterial;
+    mat.opacity = u > 0.72 ? 1 : 0.25;
+  });
+  return (
+    <mesh ref={ref}>
+      <sphereGeometry args={[0.12, 10, 10]} />
+      <meshBasicMaterial color="#c99700" transparent opacity={0.3} />
+    </mesh>
   );
 }
 
@@ -157,6 +193,10 @@ const WAYPOINTS: Array<[number, number, number]> = [
   [6.6, 1.2, 1.8], [6.6, 1.2, 0],
   [6.6, 2.6, 0], [-6.6, 2.6, 0], [-6.6, 1.2, 0],
 ];
+/** request leg: islands left→right at deck height (first 7 hops) */
+const REQ_PTS = WAYPOINTS.slice(0, 8);
+/** response leg: climb + express return (hops 8..10) */
+const RES_PTS = WAYPOINTS.slice(7);
 
 const LAYERS = [
   { key: "client", n: "01", label: "CLIENT", sub: "REACT", cap: "<App/> renders the plan — state, router, components." },
@@ -174,9 +214,23 @@ function World() {
   const rig = useRef<THREE.Group>(null!);
   const curve = useMemo(() => new THREE.CatmullRomCurve3(WAYPOINTS.map(([x, y, z]) => new THREE.Vector3(x, y, z))), []);
   const hovered = useRef(false);
+  /* auto-narration: the layer under the traveling request becomes active;
+     also mirrored onto a window event so the printed indicator strip below
+     the plate can follow along (DOM side reads it, no click needed)      */
+  const lastHop = useRef(-1);
   useFrame(({ clock }) => {
     if (!rig.current || reduced) return;
     rig.current.rotation.y = Math.sin(clock.elapsedTime * 0.25) * (hovered.current ? 0.03 : 0.1);
+    if (!hovered.current) {
+      const u = (clock.elapsedTime * 0.09) % 1;
+      const x = curve.getPointAt(u).x;
+      const hop = x < -4.4 ? 0 : x < 0 ? 1 : x < 4.4 ? 2 : 3;
+      if (hop !== lastHop.current) {
+        lastHop.current = hop;
+        setActive(hop);
+        window.dispatchEvent(new CustomEvent("mern-layer", { detail: hop }));
+      }
+    }
   });
   return (
     <group
@@ -218,17 +272,26 @@ function World() {
   );
 }
 
-export default function MernWorld() {
+export default function MernWorld({ active = true }: { active?: boolean }) {
   return (
     <Canvas
       dpr={[1, 1.75]}
       camera={{ position: [0, 8.5, 13.5], fov: 38 }}
       gl={{ antialias: true, alpha: true }}
+      frameloop={active ? "always" : "never"}
     >
       <ambientLight intensity={1.1} />
       <directionalLight position={[6, 12, 8]} intensity={1.6} />
       <directionalLight position={[-8, 6, -6]} intensity={0.5} />
       <World />
+      <OrbitControls
+        enablePan={false}
+        enableZoom={false}
+        minPolarAngle={Math.PI / 3.4}
+        maxPolarAngle={Math.PI / 2.4}
+        rotateSpeed={0.55}
+        makeDefault
+      />
     </Canvas>
   );
 }

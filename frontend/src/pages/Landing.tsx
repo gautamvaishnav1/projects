@@ -1,6 +1,6 @@
-import { Suspense, lazy, useEffect, useState, type FormEvent, type MouseEvent } from "react";
+import { Suspense, lazy, useEffect, useRef, useState, type FormEvent, type MouseEvent } from "react";
 import { Reveal, FolioBar, Teletype, MiniCity, TickerBand } from "./landing/ui";
-import { useInView, useCountUp } from "./landing/hooks";
+import { useInView, useCountUp, useOnScreen } from "./landing/hooks";
 
 /* ═══ INTERNATIONALES ARCHIV — Swiss press system ══════════════════
    1958 Müller-Brockmann poster logic on a modern web grid.
@@ -216,27 +216,28 @@ const MernWorld3D = lazy(() => import("./landing/MernWorld"));
 
 function AtlasSection() {
   const [ref, seen] = useInView<HTMLDivElement>(0.25);
+  const [gone, onScreen] = useOnScreen<HTMLDivElement>(0.05);
   const [tab, setTab] = useState(0);
-  const KEYS = ["client", "api", "node", "data"];
+  const manualLock = useRef(0);
   const caps = [
     "<App/> renders the plan — state, router, components.",
     "route → guard → controller. Requests checked at the gate.",
     "Event loop executes — non-blocking I/O, libuv pool.",
     "Documents persist — collections, indexes, pipelines.",
   ];
-  // hash-synced tabs: #atlas/data deep-links a layer, browser-native
+  /* the 3D scene narrates as the request travels; clicking a layer pins it
+     for 15 s (manual lock) so narration doesn't instantly override you     */
   useEffect(() => {
-    const apply = () => {
-      const i = KEYS.indexOf(location.hash.replace(/^#atlas\/?/, ""));
-      if (i >= 0) setTab(i);
+    const onLayer = (e: Event) => {
+      if (Date.now() < manualLock.current) return;
+      setTab((e as CustomEvent<number>).detail);
     };
-    apply();
-    window.addEventListener("hashchange", apply);
-    return () => window.removeEventListener("hashchange", apply);
+    window.addEventListener("mern-layer", onLayer);
+    return () => window.removeEventListener("mern-layer", onLayer);
   }, []);
   const pick = (i: number) => {
     setTab(i);
-    history.replaceState(null, "", `#atlas/${KEYS[i]}`);
+    manualLock.current = Date.now() + 15000;
   };
   return (
     <section id="atlas" className="sheet scroll-mt-8 py-20 md:py-28">
@@ -245,31 +246,37 @@ function AtlasSection() {
         <div ref={ref} className="col-span-12 lg:col-span-8">
           {/* ── the world map — real 3D maquette, mounts on first view ── */}
           <Reveal>
-            <figure>
+            <figure ref={gone}>
               <div className="border-[1.5px] border-black-ink p-1.5">
                 <div className="relative bg-paper-deep">
+                  {/* legend — printed key for the map's two inks */}
+                  <div className="caption-caps pointer-events-none absolute top-3 right-3 z-10 space-y-1 border border-black-ink/40 bg-paper/85 px-2 py-1.5 text-[9px] leading-none backdrop-blur-sm">
+                    <p className="flex items-center gap-1.5"><span className="inline-block h-0.5 w-4" style={{ background: "#e30613" }} /> REQUEST</p>
+                    <p className="flex items-center gap-1.5 opacity-60"><span className="inline-block h-px w-4" style={{ background: "#141414" }} /> RESPONSE</p>
+                    <p className="flex items-center gap-1.5"><span className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: "#c99700" }} /> ACK</p>
+                    <p className="pt-0.5 opacity-45">DRAG TO ORBIT</p>
+                  </div>
                   <div className="h-[380px] w-full md:h-[440px]">
                     {seen ? (
                       <Suspense fallback={
                         <div className="caption-caps grid h-full place-items-center text-black-ink/45">CASTING THE MAQUETTE…</div>
                       }>
-                        <MernWorld3D />
+                        <MernWorld3D active={onScreen} />
                       </Suspense>
                     ) : (
                       <div className="caption-caps grid h-full place-items-center text-black-ink/30">FIG. 05 — SCROLL TO CAST</div>
                     )}
                   </div>
-                  {/* layer tabs — printed switches under the plate */}
-                  <div className="flex border-t-[1.5px] border-black-ink">
+                  {/* layer strip — follows the request live; click to pin a layer */}
+                  <div className="flex border-t-[1.5px] border-black-ink" aria-live="polite">
                     {["CLIENT · REACT", "API · EXPRESS", "RUNTIME · NODE", "DATA · MONGODB"].map((t, i) => (
                       <button
                         key={t}
                         type="button"
                         onClick={() => pick(i)}
-                        onPointerDown={() => pick(i)}
                         aria-pressed={tab === i}
                         style={{ position: "relative", zIndex: 5 }}
-                        className={`caption-caps flex-1 border-r border-black-ink/25 px-1 py-2 last:border-r-0 transition-colors ${tab === i ? "bg-black-ink text-paper" : "text-black-ink/60 hover:bg-black-ink/5"}`}
+                        className={`caption-caps flex-1 border-r border-black-ink/25 px-1 py-2 text-center last:border-r-0 transition-colors ${tab === i ? "bg-black-ink text-paper font-bold" : "text-black-ink/55 hover:bg-black-ink/10"}`}
                       >
                         {t}
                       </button>
@@ -287,7 +294,7 @@ function AtlasSection() {
             <p className="mt-8 max-w-[54ch] text-[15px] leading-6 text-black-ink/80">
               The whole stack on one plate: React renders, Express routes, Node executes,
               MongoDB persists. Follow a single request as it descends through every island
-              and climbs home — hover a district to inspect it, switch layers below the plate.
+              and climbs home — hover a district to inspect it, watch the strip below follow.
             </p>
           </Reveal>
         </div>

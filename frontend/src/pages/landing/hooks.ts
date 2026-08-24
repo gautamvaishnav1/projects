@@ -24,6 +24,27 @@ export function useInView<T extends Element>(threshold = 0.2) {
   return [ref, seen] as const;
 }
 
+/** live visibility (fires both on enter AND exit) — for pausing render loops */
+export function useOnScreen<T extends Element>(threshold = 0.05) {
+  const ref = useRef<T>(null);
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setOn(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (es) => es.forEach((e) => setOn(e.isIntersecting)),
+      { threshold },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [threshold]);
+  return [ref, on] as const;
+}
+
 export function useCountUp(target: number, run: boolean, ms = 1400) {
   const [v, setV] = useState(0);
   useEffect(() => {
