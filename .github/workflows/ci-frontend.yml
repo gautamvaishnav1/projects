@@ -1,0 +1,25 @@
+name: CI - Frontend Build
+
+on:
+  push:
+    branches: [main, develop]
+    paths: ['frontend/**']
+  pull_request:
+    branches: [main]
+    paths: ['frontend/**']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - working-directory: ./frontend
+        run: npm install
+      - working-directory: ./frontend
+        run: npm run build
